@@ -1,2 +1,25 @@
 # aufgabenjager
+
 Aufgabenjäger - the task hunter
+
+## About
+
+Aufgabenjäger is meant to be a fullstack solution for tracking tasks without using a cloud service.
+
+This project was made using this [project](https://github.com/AntonioMaccarini/dockerize-react-node-postgres-nginx-application) as a starting point. It deviates from the source in that it uses Typescript and newer versions of Vite and Docker.
+
+## Stack
+
+- React
+- Express JS
+- PostgreSQL
+- Docker
+
+## Todos
+
+- Subtasks
+- Interate Tailwind for better theme
+- Checkbox for task completion
+- Filter tasks
+- Tasks by Project? (A Project could just be a task. Not sure if this is needed)
+- Reoccuring tasks: daily, monthly, etc.
