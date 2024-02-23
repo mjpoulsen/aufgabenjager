@@ -17,9 +17,8 @@ This project was made using this [project](https://github.com/AntonioMaccarini/d
 
 ## Todos
 
-- Subtasks
-- Interate Tailwind for better theme
+- Create a Kanban Board
+- Ability to create more boards
 - Checkbox for task completion
 - Filter tasks
-- Tasks by Project? (A Project could just be a task. Not sure if this is needed)
 - Reoccuring tasks: daily, monthly, etc.
