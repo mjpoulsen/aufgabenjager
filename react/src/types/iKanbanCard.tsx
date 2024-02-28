@@ -3,4 +3,6 @@ export default interface iKanbanCard {
   title: string;
   listId: string;
   description?: string;
+  dueDate?: string; // yyyy-mm-dd
+  completed: boolean;
 }
