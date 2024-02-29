@@ -1,9 +1,11 @@
+import { useState } from "react";
+
 type KanbanCardProps = {
   cardId: string;
   listId: string;
   cardTitle: string;
-  description?: string;
-  dueDate?: string;
+  description: string;
+  dueDate: string;
   completed: boolean;
   onCardClick: (id: string) => void;
   onCardDelete: (id: number, listId: string) => void;
@@ -13,6 +15,9 @@ type KanbanCardProps = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onDrag: (e: any, cardId: string) => void;
   editMode: boolean;
+  editCardTitle: (cardId: string, title: string) => void;
+  editCardDescription: (cardId: string, description: string) => void;
+  editDueDate: (cardId: string, dueDate: string) => void;
 };
 
 const KanbanCard = ({
@@ -25,12 +30,83 @@ const KanbanCard = ({
   onCardClick,
   onCardDelete,
   onCompletedChange,
-  // drop,
   allowDrop,
-  // dragEnter,
   onDrag,
   editMode,
+  editCardTitle,
+  editCardDescription,
+  editDueDate,
 }: KanbanCardProps) => {
+  const [title, setTitle] = useState(cardTitle);
+  const [descriptionState, setDescription] = useState(description);
+  const [dueDateState, setDueDate] = useState(dueDate);
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    setTitle(e.target.value);
+  };
+
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    setDescription(e.target.value);
+  };
+
+  const handleDueDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    setDueDate(e.target.value);
+  };
+
+  const renderTitle = () => {
+    if (editMode) {
+      return (
+        <input
+          className="text-black font-bold text-xl px-2 bg-gray-100"
+          type="text"
+          value={title}
+          onChange={handleTitleChange}
+          onBlur={() => {
+            editCardTitle(cardId, title);
+          }}
+        />
+      );
+    }
+
+    return <h3 className="text-black font-bold text-xl px-2">{cardTitle}</h3>;
+  };
+
+  const renderDescription = () => {
+    if (editMode) {
+      return (
+        <input
+          className="bg-gray-100 border-b-2 border-gray-500 flex-grow w-full"
+          type="text"
+          value={descriptionState}
+          onChange={handleDescriptionChange}
+          onBlur={() => {
+            editCardDescription(cardId, descriptionState);
+          }}
+        />
+      );
+    }
+
+    return <span className="">{description ? `${description}` : ""}</span>;
+  };
+
+  const renderDeleteButton = () => {
+    if (editMode) {
+      return (
+        <button
+          className="p-2 m-2"
+          onClick={() => {
+            onCardDelete(Number(cardId), listId);
+          }}
+        >
+          Delete
+        </button>
+      );
+    }
+  };
+
   return (
     <div
       className="kanban-card flex-col rounded-md bg-gray-100 p-2 m-2"
@@ -40,15 +116,15 @@ const KanbanCard = ({
       draggable={true}
       id={cardId}
     >
-      <h3 className="text-black font-bold text-xl px-2">{cardTitle}</h3>
+      <div>{renderTitle()}</div>
       <div className="flex justify-between">
-        <div className="flex p-2">
+        <div className="flex-grow w-full p-2">
           <span className="text-gray-500">
             <span>
               <strong>Description</strong>
             </span>
             <br />
-            <span className="">{description ? `${description}` : ""}</span>
+            {renderDescription()}
           </span>
         </div>
         <div className="flex-col text-gray-500">
@@ -61,7 +137,11 @@ const KanbanCard = ({
               className="bg-gray-100 border-b-2 border-gray-500"
               type="date"
               value={dueDate}
-              onChange={(e) => console.log(e)}
+              onChange={handleDueDateChange}
+              onBlur={() => {
+                // todo: fix this -- the calendar doesn't update and typing doesn't work when typing the year
+                editDueDate(cardId, dueDateState);
+              }}
               name="dueDate"
               id="dueDate"
               placeholder={"yyyy-mm-dd"}
@@ -84,16 +164,7 @@ const KanbanCard = ({
           </div>
         </div>
       </div>
-      {editMode && (
-        <button
-          className="p-2 m-2"
-          onClick={() => {
-            onCardDelete(Number(cardId), listId);
-          }}
-        >
-          Delete
-        </button>
-      )}
+      {renderDeleteButton()}
     </div>
   );
 };

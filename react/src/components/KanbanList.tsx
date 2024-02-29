@@ -18,6 +18,9 @@ type KanbanListProps = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onDrag: (e: any, cardId: string) => void;
   editCardId: string;
+  editCardTitle: (cardId: string, title: string) => void;
+  editCardDescription: (cardId: string, description: string) => void;
+  editDueDate: (cardId: string, dueDate: string) => void;
 };
 
 const KanbanList = ({
@@ -33,6 +36,9 @@ const KanbanList = ({
   dragEnter,
   onDrag,
   editCardId,
+  editCardTitle,
+  editCardDescription,
+  editDueDate,
 }: KanbanListProps) => {
   return (
     <div className="kanban-list flex-col grow m-2" id={listId}>
@@ -49,7 +55,7 @@ const KanbanList = ({
               cardId={card.id}
               listId={listId}
               cardTitle={card.title}
-              description={card.description}
+              description={card.description || ""}
               dueDate={card.dueDate || ""}
               completed={card.completed}
               onCardClick={onCardClick}
@@ -58,6 +64,9 @@ const KanbanList = ({
               allowDrop={allowDrop}
               onDrag={onDrag}
               editMode={editCardId === card.id}
+              editCardTitle={editCardTitle}
+              editCardDescription={editCardDescription}
+              editDueDate={editDueDate}
             />
           </div>
         ))}

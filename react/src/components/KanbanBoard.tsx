@@ -78,14 +78,23 @@ const KanbanBoard = () => {
     );
   };
 
-  const onCardClick = (cardId: string) => {
-    setEditCardId(cardId);
+  const findListIdFromCardId = (cardId: string) => {
+    for (const listId of Object.keys(kanbanMapState)) {
+      if (kanbanMapState[listId][cardId]) {
+        return listId;
+      }
+    }
+    return "";
   };
 
   const handleKeyDown = (event: KeyboardEvent) => {
     if (event.key === "Escape") {
       setEditCardId("");
     }
+  };
+
+  const onCardClick = (cardId: string) => {
+    setEditCardId(cardId);
   };
 
   const onCardDelete = (id: number, listId: keyof typeof kanbanMap) => {
@@ -122,13 +131,85 @@ const KanbanBoard = () => {
     setKanbanMapState({ ...kanbanMapState });
   };
 
-  const findListIdFromCardId = (cardId: string) => {
-    for (const listId of Object.keys(kanbanMapState)) {
-      if (kanbanMapState[listId][cardId]) {
-        return listId;
-      }
+  const editCardTitle = (cardId: string, title: string) => {
+    const listId = findListIdFromCardId(cardId);
+
+    if (listId === "") {
+      console.log("list id not found");
+      return;
     }
-    return "";
+
+    const list = kanbanMapState[listId];
+
+    if (!list) {
+      console.log(listId, "list key not found");
+      return;
+    }
+
+    const card = list[cardId];
+
+    if (!card) {
+      console.log(cardId, "card id not found");
+      return;
+    }
+
+    card.title = title;
+
+    setKanbanMapState({ ...kanbanMapState, [listId]: list });
+  };
+
+  const editCardDescription = (cardId: string, description: string) => {
+    const listId = findListIdFromCardId(cardId);
+
+    if (listId === "") {
+      console.log("list id not found");
+      return;
+    }
+
+    const list = kanbanMapState[listId];
+
+    if (!list) {
+      console.log(listId, "list key not found");
+      return;
+    }
+
+    const card = list[cardId];
+
+    if (!card) {
+      console.log(cardId, "card id not found");
+      return;
+    }
+
+    card.description = description;
+
+    setKanbanMapState({ ...kanbanMapState, [listId]: list });
+  };
+
+  const editDueDate = (cardId: string, dueDate: string) => {
+    const listId = findListIdFromCardId(cardId);
+
+    if (listId === "") {
+      console.log("list id not found");
+      return;
+    }
+
+    const list = kanbanMapState[listId];
+
+    if (!list) {
+      console.log(listId, "list key not found");
+      return;
+    }
+
+    const card = list[cardId];
+
+    if (!card) {
+      console.log(cardId, "card id not found");
+      return;
+    }
+
+    card.dueDate = dueDate;
+
+    setKanbanMapState({ ...kanbanMapState, [listId]: list });
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -195,6 +276,9 @@ const KanbanBoard = () => {
             dragEnter={dragEnter}
             onDrag={onDrag}
             editCardId={editCardId}
+            editCardTitle={editCardTitle}
+            editCardDescription={editCardDescription}
+            editDueDate={editDueDate}
           />
         ))}
       </div>
