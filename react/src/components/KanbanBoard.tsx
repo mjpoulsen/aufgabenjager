@@ -107,6 +107,19 @@ const KanbanBoard = () => {
 
   const onCardAdd = (listId: string) => {
     console.log("added card to list", listId);
+    // temp id -- will be replaced with uuid once integrated with backend
+    const newCardId = `${Math.floor(Math.random() * (100 - 10 + 1) + 10)}`;
+
+    const newCard: iKanbanCard = {
+      id: newCardId,
+      title: `Card ${newCardId}`,
+      listId: listId,
+      completed: false,
+    };
+
+    kanbanMapState[listId][newCardId] = newCard;
+
+    setKanbanMapState({ ...kanbanMapState });
   };
 
   const findListIdFromCardId = (cardId: string) => {
