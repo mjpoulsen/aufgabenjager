@@ -38,6 +38,18 @@ const KanbanBoard = () => {
 
   const [editCardId, setEditCardId] = useState("");
   const [kanbanMapState, setKanbanMapState] = useState(kanbanMap);
+  const [dropEnterListId, setDropEnterListId] = useState("");
+  const [draggedCardId, setDraggedCardId] = useState("");
+
+  useEffect(() => {
+    // Add the event listener when the component mounts
+    document.addEventListener("keydown", handleKeyDown);
+
+    // Remove the event listener when the component unmounts
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []); // Empty dependency array means this effect runs once on mount and cleanup on unmount
 
   const onCardCompleteMap = (id: number, listId: keyof typeof kanbanMap) => {
     const list = kanbanMapState[listId];
@@ -76,16 +88,6 @@ const KanbanBoard = () => {
     }
   };
 
-  useEffect(() => {
-    // Add the event listener when the component mounts
-    document.addEventListener("keydown", handleKeyDown);
-
-    // Remove the event listener when the component unmounts
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []); // Empty dependency array means this effect runs once on mount and cleanup on unmount
-
   const onCardDelete = (id: number, listId: keyof typeof kanbanMap) => {
     console.log("deleted card", id);
 
@@ -103,24 +105,62 @@ const KanbanBoard = () => {
     setKanbanMapState({ ...kanbanMapState, [listId]: list });
   };
 
-  const onCardAdd = () => {
-    console.log("added card");
+  const onCardAdd = (listId: string) => {
+    console.log("added card to list", listId);
+  };
+
+  const findListIdFromCardId = (cardId: string) => {
+    for (const listId of Object.keys(kanbanMapState)) {
+      if (kanbanMapState[listId][cardId]) {
+        return listId;
+      }
+    }
+    return "";
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const drop = (e: any) => {
     e.preventDefault();
-    console.log("dropped");
+    // console.log(draggedCardId + " dropped in " + dropEnterListId + " list");
+
+    const originalListId = findListIdFromCardId(draggedCardId);
+    // console.log("original list id", originalListId);
+
+    if (originalListId === dropEnterListId) {
+      console.debug("same list");
+      return;
+    } else if (dropEnterListId === "") {
+      console.debug("no list");
+      return;
+    }
+
+    const card = kanbanMapState[originalListId][draggedCardId];
+
+    kanbanMapState[dropEnterListId][draggedCardId] = card;
+
+    delete kanbanMapState[originalListId][draggedCardId];
+
+    setKanbanMapState({ ...kanbanMapState });
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const allowDrop = (e: any) => {
     e.preventDefault();
-    console.log("allow drop");
+    // console.log("allow drop");
   };
 
-  const dragEnter = (listId: number) => {
-    console.log("drag enter", listId);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const dragEnter = (e: any, listId: number) => {
+    e.preventDefault();
+    console.debug("drag enter", listId);
+    setDropEnterListId(listId.toString());
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const onDrag = (e: any, cardId: string) => {
+    e.preventDefault();
+    console.debug("drag", cardId);
+    setDraggedCardId(cardId);
   };
 
   return (
@@ -140,6 +180,7 @@ const KanbanBoard = () => {
             drop={drop}
             allowDrop={allowDrop}
             dragEnter={dragEnter}
+            onDrag={onDrag}
             editCardId={editCardId}
           />
         ))}

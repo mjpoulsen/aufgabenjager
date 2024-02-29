@@ -8,12 +8,10 @@ type KanbanCardProps = {
   onCardClick: (id: string) => void;
   onCardDelete: (id: number, listId: string) => void;
   onCompletedChange: (id: number, listId: string) => void;
-  // todo: these events may cause issues
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  drop: (e: any) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   allowDrop: (e: any) => void;
-  dragEnter: (listId: number) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onDrag: (e: any, cardId: string) => void;
   editMode: boolean;
 };
 
@@ -27,17 +25,17 @@ const KanbanCard = ({
   onCardClick,
   onCardDelete,
   onCompletedChange,
-  drop,
+  // drop,
   allowDrop,
-  dragEnter,
+  // dragEnter,
+  onDrag,
   editMode,
 }: KanbanCardProps) => {
   return (
     <div
       className="kanban-card flex-col rounded-md bg-gray-100 p-2 m-2"
-      onDrop={(e) => drop(e)}
+      onDrag={(e) => onDrag(e, cardId)}
       onDragOver={(e) => allowDrop(e)}
-      onDragEnter={() => dragEnter(0)} // todo check this value...
       onClick={() => onCardClick(cardId)}
       draggable={true}
       id={cardId}
