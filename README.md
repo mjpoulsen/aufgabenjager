@@ -20,7 +20,6 @@ This project was made using this [project](https://github.com/AntonioMaccarini/d
 - Ability to create more boards
 - Ability to create more lists
 - Default `done` list
-- Ability to change order of cards within a list
 - Fix due date selector
 - Filter tasks
 - Reoccuring tasks: daily, monthly, etc.

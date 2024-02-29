@@ -11,10 +11,29 @@ const KanbanBoard = () => {
       completed: true,
       dueDate: "2024-03-15",
       description: "This is a description",
+      displayOrder: 1,
     },
-    "2": { id: "2", title: "Card 2", listId: "1", completed: false },
-    "3": { id: "3", title: "Card 3", listId: "1", completed: false },
-    "4": { id: "4", title: "Card 4", listId: "1", completed: false },
+    "2": {
+      id: "2",
+      title: "Card 2",
+      listId: "1",
+      completed: false,
+      displayOrder: 2,
+    },
+    "3": {
+      id: "3",
+      title: "Card 3",
+      listId: "1",
+      completed: false,
+      displayOrder: 3,
+    },
+    "4": {
+      id: "4",
+      title: "Card 4",
+      listId: "1",
+      completed: false,
+      displayOrder: 4,
+    },
   };
 
   const cardMap1: Record<string, iKanbanCard> = {
@@ -25,10 +44,29 @@ const KanbanBoard = () => {
       completed: false,
       dueDate: "2024-04-15",
       description: "This is another description",
+      displayOrder: 5,
     },
-    "6": { id: "6", title: "Card 6", listId: "1", completed: false },
-    "7": { id: "7", title: "Card 7", listId: "1", completed: false },
-    "8": { id: "8", title: "Card 8", listId: "1", completed: false },
+    "6": {
+      id: "6",
+      title: "Card 6",
+      listId: "1",
+      completed: false,
+      displayOrder: 6,
+    },
+    "7": {
+      id: "7",
+      title: "Card 7",
+      listId: "1",
+      completed: false,
+      displayOrder: 7,
+    },
+    "8": {
+      id: "8",
+      title: "Card 8",
+      listId: "1",
+      completed: false,
+      displayOrder: 8,
+    },
   };
 
   const kanbanMap: Record<string, Record<string, iKanbanCard>> = {
@@ -71,11 +109,19 @@ const KanbanBoard = () => {
   };
 
   const kanbanMapToLists = () => {
-    return Object.keys(kanbanMapState).map((listId) =>
+    const lists = Object.keys(kanbanMapState).map((listId) =>
       Object.keys(kanbanMapState[listId]).map(
         (cardId) => kanbanMapState[listId][cardId]
       )
     );
+
+    const numOfLists = lists.length;
+
+    for (let i = 0; i < numOfLists; i++) {
+      lists[i].sort((a, b) => a.displayOrder - b.displayOrder);
+    }
+
+    return lists;
   };
 
   const findListIdFromCardId = (cardId: string) => {
@@ -124,6 +170,7 @@ const KanbanBoard = () => {
       title: `Card ${newCardId}`,
       listId: listId,
       completed: false,
+      displayOrder: Number.MAX_SAFE_INTEGER,
     };
 
     kanbanMapState[listId][newCardId] = newCard;
@@ -238,9 +285,27 @@ const KanbanBoard = () => {
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const allowDrop = (e: any) => {
+  const dropReorder = (e: any, cardId: string) => {
     e.preventDefault();
-    // console.log("allow drop");
+    const draggedCardListId = findListIdFromCardId(draggedCardId);
+    const cardListId = findListIdFromCardId(cardId);
+
+    if (!draggedCardListId) {
+      console.log("dragged list id not found");
+      return;
+    } else if (!cardListId) {
+      console.log("card list id not found");
+      return;
+    }
+
+    const draggedCard = kanbanMapState[draggedCardListId][draggedCardId];
+    const otherCard = kanbanMapState[cardListId][cardId];
+
+    const temp = draggedCard.displayOrder;
+    draggedCard.displayOrder = otherCard.displayOrder;
+    otherCard.displayOrder = temp;
+
+    setKanbanMapState({ ...kanbanMapState });
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -267,15 +332,15 @@ const KanbanBoard = () => {
             listId={index.toString()}
             listTitle={`List ${index}`}
             cards={list}
+            editCardId={editCardId}
             onCardClick={onCardClick}
             onCardDelete={onCardDelete}
             onCardComplete={onCardCompleteMap}
             onCardAdd={onCardAdd}
             drop={drop}
-            allowDrop={allowDrop}
             dragEnter={dragEnter}
             onDrag={onDrag}
-            editCardId={editCardId}
+            dropReorder={dropReorder}
             editCardTitle={editCardTitle}
             editCardDescription={editCardDescription}
             editDueDate={editDueDate}

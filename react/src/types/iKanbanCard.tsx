@@ -5,4 +5,5 @@ export default interface iKanbanCard {
   description?: string;
   dueDate?: string; // yyyy-mm-dd
   completed: boolean;
+  displayOrder: number;
 }

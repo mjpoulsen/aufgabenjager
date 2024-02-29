@@ -7,14 +7,14 @@ type KanbanCardProps = {
   description: string;
   dueDate: string;
   completed: boolean;
+  editMode: boolean;
   onCardClick: (id: string) => void;
   onCardDelete: (id: number, listId: string) => void;
   onCompletedChange: (id: number, listId: string) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  allowDrop: (e: any) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onDrag: (e: any, cardId: string) => void;
-  editMode: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  dropReorder: (e: any, cardId: string) => void;
   editCardTitle: (cardId: string, title: string) => void;
   editCardDescription: (cardId: string, description: string) => void;
   editDueDate: (cardId: string, dueDate: string) => void;
@@ -27,12 +27,12 @@ const KanbanCard = ({
   description,
   dueDate,
   completed,
+  editMode,
   onCardClick,
   onCardDelete,
   onCompletedChange,
-  allowDrop,
   onDrag,
-  editMode,
+  dropReorder,
   editCardTitle,
   editCardDescription,
   editDueDate,
@@ -111,7 +111,7 @@ const KanbanCard = ({
     <div
       className="kanban-card flex-col rounded-md bg-gray-100 p-2 m-2"
       onDrag={(e) => onDrag(e, cardId)}
-      onDragOver={(e) => allowDrop(e)}
+      onDragOver={(e) => dropReorder(e, cardId)}
       onClick={() => onCardClick(cardId)}
       draggable={true}
       id={cardId}

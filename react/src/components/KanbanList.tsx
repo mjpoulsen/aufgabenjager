@@ -5,6 +5,7 @@ type KanbanListProps = {
   listId: string;
   listTitle: string;
   cards: iKanbanCard[];
+  editCardId: string;
   onCardClick: (cardId: string) => void;
   onCardDelete: (cardId: number, listId: string) => void;
   onCardComplete: (cardId: number, listId: string) => void;
@@ -12,12 +13,11 @@ type KanbanListProps = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   drop: (e: any) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  allowDrop: (e: any) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   dragEnter: (e: any, listId: number) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onDrag: (e: any, cardId: string) => void;
-  editCardId: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  dropReorder: (e: any, cardId: string) => void;
   editCardTitle: (cardId: string, title: string) => void;
   editCardDescription: (cardId: string, description: string) => void;
   editDueDate: (cardId: string, dueDate: string) => void;
@@ -27,15 +27,15 @@ const KanbanList = ({
   listId,
   listTitle,
   cards,
+  editCardId,
   onCardClick,
   onCardDelete,
   onCardComplete,
   onCardAdd,
   drop,
-  allowDrop,
   dragEnter,
   onDrag,
-  editCardId,
+  dropReorder,
   editCardTitle,
   editCardDescription,
   editDueDate,
@@ -58,12 +58,12 @@ const KanbanList = ({
               description={card.description || ""}
               dueDate={card.dueDate || ""}
               completed={card.completed}
+              editMode={editCardId === card.id}
               onCardClick={onCardClick}
               onCardDelete={onCardDelete}
               onCompletedChange={onCardComplete}
-              allowDrop={allowDrop}
               onDrag={onDrag}
-              editMode={editCardId === card.id}
+              dropReorder={dropReorder}
               editCardTitle={editCardTitle}
               editCardDescription={editCardDescription}
               editDueDate={editDueDate}
