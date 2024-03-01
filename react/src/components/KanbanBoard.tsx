@@ -3,6 +3,9 @@ import iKanbanCard from "../types/iKanbanCard";
 import KanbanList from "./KanbanList";
 
 const KanbanBoard = () => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const DONE_KEY = Number.MAX_SAFE_INTEGER;
+
   const cardMap0: Record<string, iKanbanCard> = {
     "1": {
       id: "1",
@@ -69,14 +72,18 @@ const KanbanBoard = () => {
     },
   };
 
+  const doneMap: Record<string, iKanbanCard> = {};
+
   const kanbanMap: Record<string, Record<string, iKanbanCard>> = {
     0: cardMap0,
     1: cardMap1,
+    DONE_KEY: doneMap,
   };
 
   const listNameMap = {
     0: "List 0",
     1: "List 1",
+    DONE_KEY: "Done",
   };
 
   const [editCardId, setEditCardId] = useState("");
@@ -334,6 +341,16 @@ const KanbanBoard = () => {
     setDraggedCardId(cardId);
   };
 
+  const retrieveListTitle = (index: number) => {
+    const listLength = Object.keys(listNameMapState).length;
+
+    if (listLength - 1 === index) {
+      return listNameMapState.DONE_KEY as string;
+    }
+
+    return listNameMapState[index as keyof typeof listNameMap];
+  };
+
   return (
     <div className="p-2">
       <h1>Kanban Board</h1>
@@ -342,7 +359,7 @@ const KanbanBoard = () => {
           <KanbanList
             key={index}
             listId={index.toString()}
-            listTitle={listNameMapState[index as keyof typeof listNameMap]}
+            listTitle={retrieveListTitle(index)}
             cards={list}
             editCardId={editCardId}
             onCardClick={onCardClick}
