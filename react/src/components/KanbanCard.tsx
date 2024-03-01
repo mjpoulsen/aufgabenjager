@@ -56,8 +56,12 @@ const KanbanCard = ({
     setDueDate(e.target.value);
   };
 
+  const canEdit = () => {
+    return editMode && !completed;
+  };
+
   const renderTitle = () => {
-    if (editMode) {
+    if (canEdit()) {
       return (
         <input
           className="text-black font-bold text-xl px-2 bg-gray-100"
@@ -75,7 +79,7 @@ const KanbanCard = ({
   };
 
   const renderDescription = () => {
-    if (editMode) {
+    if (canEdit()) {
       return (
         <input
           className="bg-gray-100 border-b-2 border-gray-500 flex-grow w-full"

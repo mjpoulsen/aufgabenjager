@@ -103,7 +103,13 @@ const KanbanBoard = () => {
   }, []); // Empty dependency array means this effect runs once on mount and cleanup on unmount
 
   const onCardCompleteMap = (id: number, listId: keyof typeof kanbanMap) => {
-    const list = kanbanMapState[listId];
+    let list;
+
+    if (listId === DONE_KEY.toString()) {
+      list = kanbanMapState.DONE_KEY;
+    } else {
+      list = kanbanMapState[listId];
+    }
 
     if (!list) {
       console.log(listId, "list key not found");
@@ -118,7 +124,20 @@ const KanbanBoard = () => {
     }
 
     card.completed = !card.completed;
-    setKanbanMapState({ ...kanbanMapState, [listId]: list });
+
+    // If completed, move card to `done` list.
+    // if not completed, move card back to original list.
+    if (card.completed) {
+      delete list[id];
+      kanbanMapState.DONE_KEY[id] = card;
+      // update original list
+      setKanbanMapState({ ...kanbanMapState, [listId]: list });
+    } else {
+      delete kanbanMapState.DONE_KEY[id];
+      kanbanMapState[card.listId][id] = card;
+      // update done list
+      setKanbanMapState({ ...kanbanMapState });
+    }
   };
 
   const kanbanMapToLists = () => {
@@ -351,6 +370,16 @@ const KanbanBoard = () => {
     return listNameMapState[index as keyof typeof listNameMap];
   };
 
+  const retrieveListIndex = (index: number) => {
+    const listLength = Object.keys(listNameMapState).length;
+
+    if (listLength - 1 === Number(index)) {
+      return DONE_KEY;
+    }
+
+    return index;
+  };
+
   return (
     <div className="p-2">
       <h1>Kanban Board</h1>
@@ -358,7 +387,7 @@ const KanbanBoard = () => {
         {kanbanMapToLists().map((list: iKanbanCard[], index: number) => (
           <KanbanList
             key={index}
-            listId={index.toString()}
+            listId={retrieveListIndex(index).toString()}
             listTitle={retrieveListTitle(index)}
             cards={list}
             editCardId={editCardId}

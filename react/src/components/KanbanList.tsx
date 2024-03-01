@@ -73,7 +73,7 @@ const KanbanList = ({
           className="text-3xl"
           onClick={(e) => {
             e.preventDefault();
-            setEditMode(true);
+            title !== "Done" ? setEditMode(true) : setEditMode(false);
           }}
         >
           {listTitle}
