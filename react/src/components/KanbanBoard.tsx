@@ -74,10 +74,16 @@ const KanbanBoard = () => {
     1: cardMap1,
   };
 
+  const listNameMap = {
+    0: "List 0",
+    1: "List 1",
+  };
+
   const [editCardId, setEditCardId] = useState("");
   const [kanbanMapState, setKanbanMapState] = useState(kanbanMap);
   const [dropEnterListId, setDropEnterListId] = useState("");
   const [draggedCardId, setDraggedCardId] = useState("");
+  const [listNameMapState, setListNameMapState] = useState(listNameMap);
 
   useEffect(() => {
     // Add the event listener when the component mounts
@@ -205,6 +211,12 @@ const KanbanBoard = () => {
     setKanbanMapState({ ...kanbanMapState, [listId]: list });
   };
 
+  const editListTitle = (listId: string, title: string) => {
+    listNameMapState[Number(listId) as keyof typeof listNameMap] = title;
+
+    setListNameMapState({ ...listNameMapState });
+  };
+
   const editCardDescription = (cardId: string, description: string) => {
     const listId = findListIdFromCardId(cardId);
 
@@ -330,7 +342,7 @@ const KanbanBoard = () => {
           <KanbanList
             key={index}
             listId={index.toString()}
-            listTitle={`List ${index}`}
+            listTitle={listNameMapState[index as keyof typeof listNameMap]}
             cards={list}
             editCardId={editCardId}
             onCardClick={onCardClick}
@@ -344,6 +356,7 @@ const KanbanBoard = () => {
             editCardTitle={editCardTitle}
             editCardDescription={editCardDescription}
             editDueDate={editDueDate}
+            editListTitle={editListTitle}
           />
         ))}
       </div>

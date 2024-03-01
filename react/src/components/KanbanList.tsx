@@ -1,3 +1,4 @@
+import { useState } from "react";
 import iKanbanCard from "../types/iKanbanCard";
 import KanbanCard from "./KanbanCard";
 
@@ -21,6 +22,7 @@ type KanbanListProps = {
   editCardTitle: (cardId: string, title: string) => void;
   editCardDescription: (cardId: string, description: string) => void;
   editDueDate: (cardId: string, dueDate: string) => void;
+  editListTitle: (listId: string, title: string) => void;
 };
 
 const KanbanList = ({
@@ -39,10 +41,51 @@ const KanbanList = ({
   editCardTitle,
   editCardDescription,
   editDueDate,
+  editListTitle,
 }: KanbanListProps) => {
+  const [title, setTitle] = useState(listTitle);
+  const [editMode, setEditMode] = useState(false);
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    setTitle(e.target.value);
+  };
+
+  const renderTitle = () => {
+    if (editMode) {
+      return (
+        <input
+          className="text-black font-bold text-xl px-2 bg-gray-100"
+          type="text"
+          value={title}
+          onChange={handleTitleChange}
+          onBlur={() => {
+            editListTitle(listId, title);
+            setEditMode(false);
+          }}
+        />
+      );
+    }
+
+    return (
+      <div className="flex grow w-full">
+        <h2
+          className="text-3xl"
+          onClick={(e) => {
+            e.preventDefault();
+            setEditMode(true);
+          }}
+        >
+          {listTitle}
+        </h2>
+        <div></div>
+      </div>
+    );
+  };
+
   return (
     <div className="kanban-list flex-col grow m-2" id={listId}>
-      <h2 className="text-3xl">{listTitle}</h2>
+      {renderTitle()}
       <div className="kanban-list-cards">
         {cards.map((card: iKanbanCard, index: number) => (
           <div
