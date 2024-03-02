@@ -300,10 +300,8 @@ const KanbanBoard = () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const drop = (e: any) => {
     e.preventDefault();
-    // console.log(draggedCardId + " dropped in " + dropEnterListId + " list");
 
     const originalListId = findListIdFromCardId(draggedCardId);
-    // console.log("original list id", originalListId);
 
     if (originalListId === dropEnterListId) {
       console.debug("same list");
@@ -380,9 +378,30 @@ const KanbanBoard = () => {
     return index;
   };
 
+  const addNewList = () => {
+    const length = Object.keys(kanbanMapState).length - 1;
+
+    const listNameKey = length as keyof typeof listNameMapState;
+    listNameMapState[listNameKey] = `List ${length}`;
+
+    setListNameMapState({ ...listNameMapState });
+    setKanbanMapState({ ...kanbanMapState, [length]: {} });
+  };
+
   return (
     <div className="p-2">
-      <h1>Kanban Board</h1>
+      <div>
+        <h1>Kanban Board</h1>
+        <div
+          className="add-list-btn max-w-20"
+          onClick={() => {
+            addNewList();
+          }}
+        >
+          <span className="plus-sign px-1">+</span>
+          <span>Add List</span>
+        </div>
+      </div>
       <div className="kanban-board flex">
         {kanbanMapToLists().map((list: iKanbanCard[], index: number) => (
           <KanbanList

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import iKanbanCard from "../types/iKanbanCard";
 import KanbanCard from "./KanbanCard";
 
@@ -46,9 +46,27 @@ const KanbanList = ({
   const [title, setTitle] = useState(listTitle);
   const [editMode, setEditMode] = useState(false);
 
+  useEffect(() => {
+    setTitle(listTitle);
+  }, [listTitle]);
+
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
     setTitle(e.target.value);
+  };
+
+  const notDoneList = Number(listId) !== Number.MAX_SAFE_INTEGER;
+
+  const listOnDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    if (notDoneList) {
+      dragEnter(e, Number(listId));
+    }
+  };
+
+  const listOnDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    if (notDoneList) {
+      drop(e);
+    }
   };
 
   const renderTitle = () => {
@@ -68,61 +86,69 @@ const KanbanList = ({
     }
 
     return (
-      <div className="flex grow w-full">
+      <div className="list-title flex grow w-full">
         <h2
           className="text-3xl"
           onClick={(e) => {
             e.preventDefault();
-            title !== "Done" ? setEditMode(true) : setEditMode(false);
+            notDoneList ? setEditMode(true) : setEditMode(false);
           }}
         >
-          {listTitle}
+          {title}
         </h2>
         <div></div>
       </div>
     );
   };
 
+  const renderAddItemButton = () => {
+    if (notDoneList) {
+      return (
+        <div
+          className="add-card-btn"
+          onClick={() => {
+            onCardAdd(listId);
+          }}
+        >
+          <span className="plus-sign px-1">+</span>
+          <span>Add Item</span>
+        </div>
+      );
+    }
+  };
+
   return (
-    <div className="kanban-list flex-col grow m-2" id={listId}>
+    <div
+      className="kanban-list flex-col grow m-2 bg-slate-500 rounded-lg shadow-lg p-2"
+      id={listId + Math.random()}
+      onDrop={(e) => listOnDrop(e)}
+      onDragEnter={(e) => listOnDragEnter(e)}
+      onDragOver={(e) => e.preventDefault()}
+    >
       {renderTitle()}
-      <div className="kanban-list-cards">
+      <div className="kanban-list-cards grow">
         {cards.map((card: iKanbanCard, index: number) => (
-          <div
-            key={listId + Math.random()} // todo find a better key
-            onDrop={(e) => drop(e)}
-            onDragEnter={(e) => dragEnter(e, Number(listId))}
-          >
-            <KanbanCard
-              key={index}
-              cardId={card.id}
-              listId={listId}
-              cardTitle={card.title}
-              description={card.description || ""}
-              dueDate={card.dueDate || ""}
-              completed={card.completed}
-              editMode={editCardId === card.id}
-              onCardClick={onCardClick}
-              onCardDelete={onCardDelete}
-              onCompletedChange={onCardComplete}
-              onDrag={onDrag}
-              dropReorder={dropReorder}
-              editCardTitle={editCardTitle}
-              editCardDescription={editCardDescription}
-              editDueDate={editDueDate}
-            />
-          </div>
+          <KanbanCard
+            key={index}
+            cardId={card.id}
+            listId={listId}
+            cardTitle={card.title}
+            description={card.description || ""}
+            dueDate={card.dueDate || ""}
+            completed={card.completed}
+            editMode={editCardId === card.id}
+            onCardClick={onCardClick}
+            onCardDelete={onCardDelete}
+            onCompletedChange={onCardComplete}
+            onDrag={onDrag}
+            dropReorder={dropReorder}
+            editCardTitle={editCardTitle}
+            editCardDescription={editCardDescription}
+            editDueDate={editDueDate}
+          />
         ))}
       </div>
-      <div
-        className="add-card-btn"
-        onClick={() => {
-          onCardAdd(listId);
-        }}
-      >
-        <span className="plus-sign px-1">+</span>
-        <span>Add Item</span>
-      </div>
+      {renderAddItemButton()}
     </div>
   );
 };
