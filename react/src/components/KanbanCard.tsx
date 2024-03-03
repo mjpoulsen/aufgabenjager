@@ -115,7 +115,7 @@ const KanbanCard = ({
     <div
       className="kanban-card flex-col rounded-md bg-gray-100 p-2 m-2"
       onDrag={(e) => onDrag(e, cardId)}
-      onDragOver={(e) => dropReorder(e, cardId)}
+      onDrop={(e) => dropReorder(e, cardId)}
       onClick={() => onCardClick(cardId)}
       draggable={true}
       id={cardId}
