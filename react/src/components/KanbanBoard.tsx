@@ -388,6 +388,20 @@ const KanbanBoard = () => {
     setKanbanMapState({ ...kanbanMapState, [length]: {} });
   };
 
+  const onDeleteList = (listId: string) => {
+    const list = kanbanMapState[listId];
+
+    if (!list) {
+      console.log(listId, "list key not found");
+      return;
+    }
+
+    delete kanbanMapState[listId];
+    delete listNameMapState[listId as keyof typeof listNameMapState];
+
+    setKanbanMapState({ ...kanbanMapState });
+  };
+
   return (
     <div className="p-2">
       <div>
@@ -422,6 +436,7 @@ const KanbanBoard = () => {
             editCardDescription={editCardDescription}
             editDueDate={editDueDate}
             editListTitle={editListTitle}
+            onDeleteList={onDeleteList}
           />
         ))}
       </div>
