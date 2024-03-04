@@ -18,7 +18,6 @@ This project was made using this [project](https://github.com/AntonioMaccarini/d
 ## Todos
 
 - Ability to create more boards
-- Ability to rearrange lists
 - Fix due date selector
 - Filter tasks
 - Reoccuring tasks: daily, monthly, etc.

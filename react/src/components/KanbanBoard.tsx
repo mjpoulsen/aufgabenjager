@@ -91,6 +91,7 @@ const KanbanBoard = () => {
   const [dropEnterListId, setDropEnterListId] = useState("");
   const [draggedCardId, setDraggedCardId] = useState("");
   const [listNameMapState, setListNameMapState] = useState(listNameMap);
+  const [draggedListId, setDraggedListId] = useState("");
 
   useEffect(() => {
     // Add the event listener when the component mounts
@@ -297,31 +298,33 @@ const KanbanBoard = () => {
     setKanbanMapState({ ...kanbanMapState, [listId]: list });
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const drop = (e: any) => {
+  const onListDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
 
-    const originalListId = findListIdFromCardId(draggedCardId);
+    console.log("dragged list id", draggedListId);
+    console.log("drop enter list id", dropEnterListId);
 
-    if (originalListId === dropEnterListId) {
-      console.debug("same list");
-      return;
-    } else if (dropEnterListId === "") {
-      console.debug("no list");
-      return;
-    }
+    const tempList = kanbanMapState[draggedListId];
+    const dropEnterList = kanbanMapState[dropEnterListId];
 
-    const card = kanbanMapState[originalListId][draggedCardId];
+    kanbanMapState[draggedListId] = dropEnterList;
+    kanbanMapState[dropEnterListId] = tempList;
 
-    kanbanMapState[dropEnterListId][draggedCardId] = card;
+    const tempName =
+      listNameMapState[draggedListId as keyof typeof listNameMapState];
+    const dropEnterName =
+      listNameMapState[dropEnterListId as keyof typeof listNameMapState];
 
-    delete kanbanMapState[originalListId][draggedCardId];
+    listNameMapState[draggedListId as keyof typeof listNameMapState] =
+      dropEnterName;
+    listNameMapState[dropEnterListId as keyof typeof listNameMapState] =
+      tempName;
 
+    setListNameMapState({ ...listNameMapState });
     setKanbanMapState({ ...kanbanMapState });
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const dropReorder = (e: any, cardId: string) => {
+  const dropReorder = (e: React.DragEvent<HTMLDivElement>, cardId: string) => {
     e.preventDefault();
     const draggedCardListId = findListIdFromCardId(draggedCardId);
     const cardListId = findListIdFromCardId(cardId);
@@ -344,15 +347,22 @@ const KanbanBoard = () => {
     setKanbanMapState({ ...kanbanMapState });
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const dragEnter = (e: any, listId: number) => {
+  const dragEnterList = (
+    e: React.DragEvent<HTMLDivElement>,
+    listId: number
+  ) => {
     e.preventDefault();
     console.debug("drag enter", listId);
     setDropEnterListId(listId.toString());
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const onDrag = (e: any, cardId: string) => {
+  const onListDrag = (e: React.DragEvent<HTMLDivElement>, listId: string) => {
+    e.preventDefault();
+    console.debug("list drag", listId);
+    setDraggedListId(listId);
+  };
+
+  const onDrag = (e: React.DragEvent<HTMLDivElement>, cardId: string) => {
     e.preventDefault();
     console.debug("drag", cardId);
     setDraggedCardId(cardId);
@@ -428,8 +438,9 @@ const KanbanBoard = () => {
             onCardDelete={onCardDelete}
             onCardComplete={onCardCompleteMap}
             onCardAdd={onCardAdd}
-            drop={drop}
-            dragEnter={dragEnter}
+            onListDrop={onListDrop}
+            dragEnterList={dragEnterList}
+            onListDrag={onListDrag}
             onDrag={onDrag}
             dropReorder={dropReorder}
             editCardTitle={editCardTitle}

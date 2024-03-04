@@ -11,14 +11,11 @@ type KanbanListProps = {
   onCardDelete: (cardId: number, listId: string) => void;
   onCardComplete: (cardId: number, listId: string) => void;
   onCardAdd: (listId: string) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  drop: (e: any) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  dragEnter: (e: any, listId: number) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onDrag: (e: any, cardId: string) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  dropReorder: (e: any, cardId: string) => void;
+  onListDrop: (e: React.DragEvent<HTMLDivElement>) => void;
+  dragEnterList: (e: React.DragEvent<HTMLDivElement>, listId: number) => void;
+  onListDrag: (e: React.DragEvent<HTMLDivElement>, listId: string) => void;
+  onDrag: (e: React.DragEvent<HTMLDivElement>, cardId: string) => void;
+  dropReorder: (e: React.DragEvent<HTMLDivElement>, cardId: string) => void;
   editCardTitle: (cardId: string, title: string) => void;
   editCardDescription: (cardId: string, description: string) => void;
   editDueDate: (cardId: string, dueDate: string) => void;
@@ -35,8 +32,9 @@ const KanbanList = ({
   onCardDelete,
   onCardComplete,
   onCardAdd,
-  drop,
-  dragEnter,
+  onListDrop,
+  dragEnterList,
+  onListDrag,
   onDrag,
   dropReorder,
   editCardTitle,
@@ -61,13 +59,19 @@ const KanbanList = ({
 
   const listOnDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
     if (notDoneList) {
-      dragEnter(e, Number(listId));
+      dragEnterList(e, Number(listId));
     }
   };
 
   const listOnDrop = (e: React.DragEvent<HTMLDivElement>) => {
     if (notDoneList) {
-      drop(e);
+      onListDrop(e);
+    }
+  };
+
+  const listOnDrag = (e: React.DragEvent<HTMLDivElement>) => {
+    if (notDoneList) {
+      onListDrag(e, listId);
     }
   };
 
@@ -160,6 +164,8 @@ const KanbanList = ({
       onDrop={(e) => listOnDrop(e)}
       onDragEnter={(e) => listOnDragEnter(e)}
       onDragOver={(e) => e.preventDefault()}
+      onDrag={(e) => listOnDrag(e)}
+      draggable={true}
     >
       <div className="flex justify-between mx-2">
         {renderTitle()}
