@@ -50,7 +50,6 @@ const KanbanCard = ({
   };
 
   const handleDueDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    e.preventDefault();
     setDueDate(e.target.value);
   };
 
@@ -138,10 +137,10 @@ const KanbanCard = ({
             <input
               className="bg-gray-100 border-b-2 border-gray-500"
               type="date"
-              value={dueDate}
+              value={dueDateState}
               onChange={handleDueDateChange}
-              onBlur={() => {
-                // todo: fix this -- the calendar doesn't update and typing doesn't work when typing the year
+              onBlur={(e) => {
+                e.preventDefault();
                 editDueDate(cardId, dueDateState);
               }}
               name="dueDate"
