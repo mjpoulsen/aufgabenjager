@@ -21,4 +21,4 @@ This project was made using this [project](https://github.com/AntonioMaccarini/d
 - Filter tasks
 - Reoccuring tasks: daily, monthly, etc.
 - Add drizzle ORM?
-- Make types more consistent: there are string and number types that change depending upon lookup or display
+- Bug: cannot move cards now that lists can move

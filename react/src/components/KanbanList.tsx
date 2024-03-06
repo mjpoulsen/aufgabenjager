@@ -8,11 +8,11 @@ type KanbanListProps = {
   cards: iKanbanCard[];
   editCardId: string;
   onCardClick: (cardId: string) => void;
-  onCardDelete: (cardId: number, listId: string) => void;
-  onCardComplete: (cardId: number, listId: string) => void;
+  onCardDelete: (cardId: string, listId: string) => void;
+  onCardComplete: (cardId: string, listId: string) => void;
   onCardAdd: (listId: string) => void;
   onListDrop: (e: React.DragEvent<HTMLDivElement>) => void;
-  dragEnterList: (e: React.DragEvent<HTMLDivElement>, listId: number) => void;
+  dragEnterList: (e: React.DragEvent<HTMLDivElement>, listId: string) => void;
   onListDrag: (e: React.DragEvent<HTMLDivElement>, listId: string) => void;
   onDrag: (e: React.DragEvent<HTMLDivElement>, cardId: string) => void;
   dropReorder: (e: React.DragEvent<HTMLDivElement>, cardId: string) => void;
@@ -45,21 +45,23 @@ const KanbanList = ({
 }: KanbanListProps) => {
   const [title, setTitle] = useState(listTitle);
   const [editMode, setEditMode] = useState(false);
+  const [listIdState, setListId] = useState(listId);
 
   useEffect(() => {
     setTitle(listTitle);
-  }, [listTitle]);
+    setListId(listId);
+  }, [listTitle, listId]);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
     setTitle(e.target.value);
   };
 
-  const notDoneList = Number(listId) !== Number.MAX_SAFE_INTEGER;
+  const notDoneList = Number(listIdState) !== Number.MAX_SAFE_INTEGER;
 
   const listOnDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
     if (notDoneList) {
-      dragEnterList(e, Number(listId));
+      dragEnterList(e, listIdState);
     }
   };
 
@@ -71,7 +73,7 @@ const KanbanList = ({
 
   const listOnDrag = (e: React.DragEvent<HTMLDivElement>) => {
     if (notDoneList) {
-      onListDrag(e, listId);
+      onListDrag(e, listIdState);
     }
   };
 
@@ -84,7 +86,7 @@ const KanbanList = ({
           value={title}
           onChange={handleTitleChange}
           onBlur={() => {
-            editListTitle(listId, title);
+            editListTitle(listIdState, title);
             setEditMode(false);
           }}
         />
@@ -113,7 +115,7 @@ const KanbanList = ({
         <div
           className="add-card-btn"
           onClick={() => {
-            onCardAdd(listId);
+            onCardAdd(listIdState);
           }}
         >
           <span className="plus-sign px-1">+</span>
@@ -130,7 +132,7 @@ const KanbanList = ({
           <span
             className="cross-sign flex px-1 bg-white-500"
             onClick={() => {
-              onDeleteList(listId);
+              onDeleteList(listIdState);
             }}
           >
             <svg
@@ -160,7 +162,7 @@ const KanbanList = ({
   return (
     <div
       className="kanban-list flex-col grow m-2 bg-slate-500 rounded-lg shadow-lg p-2"
-      id={listId + Math.random()}
+      id={listIdState + Math.random()}
       onDrop={(e) => listOnDrop(e)}
       onDragEnter={(e) => listOnDragEnter(e)}
       onDragOver={(e) => e.preventDefault()}
@@ -176,7 +178,7 @@ const KanbanList = ({
           <KanbanCard
             key={index}
             cardId={card.id}
-            listId={listId}
+            listId={listIdState}
             cardTitle={card.title}
             description={card.description || ""}
             dueDate={card.dueDate || ""}

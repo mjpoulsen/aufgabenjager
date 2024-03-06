@@ -3,7 +3,6 @@ import iKanbanCard from "../types/iKanbanCard";
 import KanbanList from "./KanbanList";
 
 const KanbanBoard = () => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const DONE_KEY = Number.MAX_SAFE_INTEGER;
 
   const cardMap0: Record<string, iKanbanCard> = {
@@ -103,7 +102,7 @@ const KanbanBoard = () => {
     };
   }, []); // Empty dependency array means this effect runs once on mount and cleanup on unmount
 
-  const onCardCompleteMap = (id: number, listId: keyof typeof kanbanMap) => {
+  const onCardCompleteMap = (id: string, listId: keyof typeof kanbanMap) => {
     let list;
 
     if (listId === DONE_KEY.toString()) {
@@ -176,21 +175,10 @@ const KanbanBoard = () => {
     setEditCardId(cardId);
   };
 
-  const onCardDelete = (id: number, listId: keyof typeof kanbanMap) => {
-    console.log("deleted card", id);
+  const onCardDelete = (id: string, listId: keyof typeof kanbanMap) => {
+    delete kanbanMapState[listId][id];
 
-    const list = kanbanMapState[listId];
-
-    if (!list) {
-      console.log(listId, "list key not found");
-      return;
-    }
-
-    setEditCardId("");
-
-    delete list[id];
-
-    setKanbanMapState({ ...kanbanMapState, [listId]: list });
+    setKanbanMapState({ ...kanbanMapState });
   };
 
   const onCardAdd = (listId: string) => {
@@ -349,11 +337,11 @@ const KanbanBoard = () => {
 
   const dragEnterList = (
     e: React.DragEvent<HTMLDivElement>,
-    listId: number
+    listId: string
   ) => {
     e.preventDefault();
     console.debug("drag enter", listId);
-    setDropEnterListId(listId.toString());
+    setDropEnterListId(listId);
   };
 
   const onListDrag = (e: React.DragEvent<HTMLDivElement>, listId: string) => {

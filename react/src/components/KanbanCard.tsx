@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type KanbanCardProps = {
   cardId: string;
@@ -9,8 +9,8 @@ type KanbanCardProps = {
   completed: boolean;
   editMode: boolean;
   onCardClick: (id: string) => void;
-  onCardDelete: (id: number, listId: string) => void;
-  onCompletedChange: (id: number, listId: string) => void;
+  onCardDelete: (id: string, listId: string) => void;
+  onCompletedChange: (id: string, listId: string) => void;
   onDrag: (e: React.DragEvent<HTMLDivElement>, cardId: string) => void;
   dropReorder: (e: React.DragEvent<HTMLDivElement>, cardId: string) => void;
   editCardTitle: (cardId: string, title: string) => void;
@@ -38,6 +38,20 @@ const KanbanCard = ({
   const [title, setTitle] = useState(cardTitle);
   const [descriptionState, setDescription] = useState(description);
   const [dueDateState, setDueDate] = useState(dueDate);
+  const [cardIdState, setCardId] = useState(cardId);
+  const [completedState, setCompleted] = useState(completed);
+  const [listIdState, setListId] = useState(listId);
+  const [editModeState, setEditMode] = useState(editMode);
+
+  useEffect(() => {
+    setTitle(cardTitle);
+    setDescription(description);
+    setDueDate(dueDate);
+    setCardId(cardId);
+    setCompleted(completed);
+    setListId(listId);
+    setEditMode(editMode);
+  }, [cardTitle, description, dueDate, cardId, completed, listId, editMode]);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
@@ -54,7 +68,7 @@ const KanbanCard = ({
   };
 
   const canEdit = () => {
-    return editMode && !completed;
+    return editModeState && !completedState;
   };
 
   const renderTitle = () => {
@@ -84,22 +98,24 @@ const KanbanCard = ({
           value={descriptionState}
           onChange={handleDescriptionChange}
           onBlur={() => {
-            editCardDescription(cardId, descriptionState);
+            editCardDescription(cardIdState, descriptionState);
           }}
         />
       );
     }
 
-    return <span className="">{description ? `${description}` : ""}</span>;
+    return (
+      <span className="">{descriptionState ? `${descriptionState}` : ""}</span>
+    );
   };
 
   const renderDeleteButton = () => {
-    if (editMode) {
+    if (editModeState) {
       return (
         <button
           className="p-2 m-2"
           onClick={() => {
-            onCardDelete(Number(cardId), listId);
+            onCardDelete(cardIdState, listIdState);
           }}
         >
           Delete
@@ -111,11 +127,11 @@ const KanbanCard = ({
   return (
     <div
       className="kanban-card flex-col rounded-md bg-gray-100 p-2 m-2"
-      onDrag={(e) => onDrag(e, cardId)}
-      onDrop={(e) => dropReorder(e, cardId)}
-      onClick={() => onCardClick(cardId)}
+      onDrag={(e) => onDrag(e, cardIdState)}
+      onDrop={(e) => dropReorder(e, cardIdState)}
+      onClick={() => onCardClick(cardIdState)}
       draggable={true}
-      id={cardId}
+      id={cardIdState}
     >
       <div>{renderTitle()}</div>
       <div className="flex justify-between">
@@ -141,7 +157,7 @@ const KanbanCard = ({
               onChange={handleDueDateChange}
               onBlur={(e) => {
                 e.preventDefault();
-                editDueDate(cardId, dueDateState);
+                editDueDate(cardIdState, dueDateState);
               }}
               name="dueDate"
               id="dueDate"
@@ -157,7 +173,8 @@ const KanbanCard = ({
                   type="checkbox"
                   checked={completed}
                   onChange={() => {
-                    if (editMode) onCompletedChange(Number(cardId), listId);
+                    if (editModeState)
+                      onCompletedChange(cardIdState, listIdState);
                   }}
                 />
               </label>
