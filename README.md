@@ -21,4 +21,3 @@ This project was made using this [project](https://github.com/AntonioMaccarini/d
 - Filter tasks
 - Reoccuring tasks: daily, monthly, etc.
 - Add drizzle ORM?
-- Address the reorder hack

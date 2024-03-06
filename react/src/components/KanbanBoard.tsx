@@ -336,23 +336,20 @@ const KanbanBoard = () => {
     const draggedCard = kanbanMapState[draggedCardListId][draggedCardId];
     const otherCard = kanbanMapState[cardListId][cardId];
 
-    // if the card is dragged within the same list
-    if (draggedCardListId === cardListId) {
-      let temp = draggedCard.displayOrder;
+    const otherCardDisplayOrder = otherCard.displayOrder;
 
-      // A bit of a hack to ensure the display orders do not collide
-      // because the display order can be the same if a card was in
-      // another list and moved to the current list.
-      // Not sure if it makes sense to update the display order of
-      // all cards (might take a performance hit), but that might
-      // be a better solution.
-      if (temp === otherCard.displayOrder) {
-        temp += 0.5;
+    for (const card of Object.values(kanbanMapState[cardListId])) {
+      if (draggedCard.displayOrder >= otherCardDisplayOrder) {
+        card.displayOrder += 1;
+      } else {
+        card.displayOrder -= 1;
       }
+    }
 
-      draggedCard.displayOrder = otherCard.displayOrder;
-      otherCard.displayOrder = temp;
-    } else {
+    draggedCard.displayOrder = otherCardDisplayOrder;
+
+    if (draggedCardListId !== cardListId) {
+      delete kanbanMapState[draggedCardListId][draggedCardId];
       kanbanMapState[cardListId][draggedCardId] = draggedCard;
     }
 
