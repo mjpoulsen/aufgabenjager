@@ -14,8 +14,8 @@ type KanbanListProps = {
   onListDrop: (e: React.DragEvent<HTMLDivElement>) => void;
   dragEnterList: (e: React.DragEvent<HTMLDivElement>, listId: string) => void;
   onListDrag: (e: React.DragEvent<HTMLDivElement>, listId: string) => void;
-  onDrag: (e: React.DragEvent<HTMLDivElement>, cardId: string) => void;
-  dropReorder: (e: React.DragEvent<HTMLDivElement>, cardId: string) => void;
+  onCardDrag: (e: React.DragEvent<HTMLDivElement>, cardId: string) => void;
+  dropCardReorder: (e: React.DragEvent<HTMLDivElement>, cardId: string) => void;
   editCardTitle: (cardId: string, title: string) => void;
   editCardDescription: (cardId: string, description: string) => void;
   editDueDate: (cardId: string, dueDate: string) => void;
@@ -35,8 +35,8 @@ const KanbanList = ({
   onListDrop,
   dragEnterList,
   onListDrag,
-  onDrag,
-  dropReorder,
+  onCardDrag,
+  dropCardReorder,
   editCardTitle,
   editCardDescription,
   editDueDate,
@@ -187,8 +187,8 @@ const KanbanList = ({
             onCardClick={onCardClick}
             onCardDelete={onCardDelete}
             onCompletedChange={onCardComplete}
-            onDrag={onDrag}
-            dropReorder={dropReorder}
+            onCardDrag={onCardDrag}
+            dropCardReorder={dropCardReorder}
             editCardTitle={editCardTitle}
             editCardDescription={editCardDescription}
             editDueDate={editDueDate}

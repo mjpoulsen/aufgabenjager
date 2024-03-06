@@ -11,8 +11,8 @@ type KanbanCardProps = {
   onCardClick: (id: string) => void;
   onCardDelete: (id: string, listId: string) => void;
   onCompletedChange: (id: string, listId: string) => void;
-  onDrag: (e: React.DragEvent<HTMLDivElement>, cardId: string) => void;
-  dropReorder: (e: React.DragEvent<HTMLDivElement>, cardId: string) => void;
+  onCardDrag: (e: React.DragEvent<HTMLDivElement>, cardId: string) => void;
+  dropCardReorder: (e: React.DragEvent<HTMLDivElement>, cardId: string) => void;
   editCardTitle: (cardId: string, title: string) => void;
   editCardDescription: (cardId: string, description: string) => void;
   editDueDate: (cardId: string, dueDate: string) => void;
@@ -29,8 +29,8 @@ const KanbanCard = ({
   onCardClick,
   onCardDelete,
   onCompletedChange,
-  onDrag,
-  dropReorder,
+  onCardDrag,
+  dropCardReorder,
   editCardTitle,
   editCardDescription,
   editDueDate,
@@ -127,8 +127,8 @@ const KanbanCard = ({
   return (
     <div
       className="kanban-card flex-col rounded-md bg-gray-100 p-2 m-2"
-      onDrag={(e) => onDrag(e, cardIdState)}
-      onDrop={(e) => dropReorder(e, cardIdState)}
+      onDrag={(e) => onCardDrag(e, cardIdState)}
+      onDrop={(e) => dropCardReorder(e, cardIdState)}
       onClick={() => onCardClick(cardIdState)}
       draggable={true}
       id={cardIdState}

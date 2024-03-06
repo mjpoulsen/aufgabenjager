@@ -46,28 +46,28 @@ const KanbanBoard = () => {
       completed: false,
       dueDate: "2024-04-15",
       description: "This is another description",
-      displayOrder: 5,
+      displayOrder: 1,
     },
     "6": {
       id: "6",
       title: "Card 6",
       listId: "1",
       completed: false,
-      displayOrder: 6,
+      displayOrder: 2,
     },
     "7": {
       id: "7",
       title: "Card 7",
       listId: "1",
       completed: false,
-      displayOrder: 7,
+      displayOrder: 3,
     },
     "8": {
       id: "8",
       title: "Card 8",
       listId: "1",
       completed: false,
-      displayOrder: 8,
+      displayOrder: 4,
     },
   };
 
@@ -289,8 +289,13 @@ const KanbanBoard = () => {
   const onListDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
 
-    console.log("dragged list id", draggedListId);
-    console.log("drop enter list id", dropEnterListId);
+    console.debug("dragged list id", draggedListId);
+    console.debug("drop enter list id", dropEnterListId);
+
+    if (!draggedListId || !dropEnterListId) {
+      console.debug("dragged list id or drop enter list id not found");
+      return;
+    }
 
     const tempList = kanbanMapState[draggedListId];
     const dropEnterList = kanbanMapState[dropEnterListId];
@@ -312,8 +317,11 @@ const KanbanBoard = () => {
     setKanbanMapState({ ...kanbanMapState });
   };
 
-  const dropReorder = (e: React.DragEvent<HTMLDivElement>, cardId: string) => {
-    e.preventDefault();
+  const dropCardReorder = (
+    e: React.DragEvent<HTMLDivElement>,
+    cardId: string
+  ) => {
+    e.stopPropagation();
     const draggedCardListId = findListIdFromCardId(draggedCardId);
     const cardListId = findListIdFromCardId(cardId);
 
@@ -328,11 +336,34 @@ const KanbanBoard = () => {
     const draggedCard = kanbanMapState[draggedCardListId][draggedCardId];
     const otherCard = kanbanMapState[cardListId][cardId];
 
-    const temp = draggedCard.displayOrder;
-    draggedCard.displayOrder = otherCard.displayOrder;
-    otherCard.displayOrder = temp;
+    // if the card is dragged within the same list
+    if (draggedCardListId === cardListId) {
+      let temp = draggedCard.displayOrder;
 
+      // A bit of a hack to ensure the display orders do not collide
+      // because the display order can be the same if a card was in
+      // another list and moved to the current list.
+      // Not sure if it makes sense to update the display order of
+      // all cards (might take a performance hit), but that might
+      // be a better solution.
+      if (temp === otherCard.displayOrder) {
+        temp += 0.5;
+      }
+
+      draggedCard.displayOrder = otherCard.displayOrder;
+      otherCard.displayOrder = temp;
+    } else {
+      kanbanMapState[cardListId][draggedCardId] = draggedCard;
+    }
+
+    setDraggedCardId("");
     setKanbanMapState({ ...kanbanMapState });
+  };
+
+  const onCardDrag = (e: React.DragEvent<HTMLDivElement>, cardId: string) => {
+    e.stopPropagation();
+    console.debug("drag", cardId);
+    setDraggedCardId(cardId);
   };
 
   const dragEnterList = (
@@ -348,12 +379,6 @@ const KanbanBoard = () => {
     e.preventDefault();
     console.debug("list drag", listId);
     setDraggedListId(listId);
-  };
-
-  const onDrag = (e: React.DragEvent<HTMLDivElement>, cardId: string) => {
-    e.preventDefault();
-    console.debug("drag", cardId);
-    setDraggedCardId(cardId);
   };
 
   const retrieveListTitle = (index: number) => {
@@ -429,8 +454,8 @@ const KanbanBoard = () => {
             onListDrop={onListDrop}
             dragEnterList={dragEnterList}
             onListDrag={onListDrag}
-            onDrag={onDrag}
-            dropReorder={dropReorder}
+            onCardDrag={onCardDrag}
+            dropCardReorder={dropCardReorder}
             editCardTitle={editCardTitle}
             editCardDescription={editCardDescription}
             editDueDate={editDueDate}
