@@ -20,4 +20,4 @@ This project was made using this [project](https://github.com/AntonioMaccarini/d
 - Ability to create more boards
 - Filter tasks
 - Reoccuring tasks: daily, monthly, etc.
-- Add drizzle ORM?
+- Integrate backend api into react

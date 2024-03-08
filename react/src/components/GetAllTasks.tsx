@@ -39,7 +39,7 @@ const GetAllTasks = () => {
                     {task.description}
                   </td>
                   <td className="px-2 py-1 border border-gray-400">
-                    {task.due_date.slice(0, 10)}
+                    {task.due_date}
                   </td>
                   <td className="px-2 py-1 border border-gray-400">{`${task.completed}`}</td>
                 </tr>

@@ -131,3 +131,6 @@ dist
 
 # Project Files
 /data
+
+# Drizzle
+*/drizzle
