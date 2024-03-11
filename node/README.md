@@ -42,7 +42,8 @@ Generates the `drizzle` directory and launches a daemon for the local studio.
 
 ## Todo
 
-- Add a DONE list to board 1 (use beekeeper studio)
+- Add a display sequence column to `lists` schema
+- Add a display sequence column to `tasks` schema
 - Ensure new boards always have a default list and a DONE list
 - Add the following APIs
   - GET Board by ID with its Lists and each List's Tasks

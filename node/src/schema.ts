@@ -7,13 +7,13 @@ export const tasks = pgTable("tasks", {
   description: text("description"),
   due_date: date("due_date"),
   completed: boolean("completed").notNull().default(false),
-  list_id: text("list_id"),
+  list_id: serial("list_id"),
 });
 
 export const lists = pgTable("lists", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
-  board_id: text("board_id"),
+  board_id: serial("board_id"),
 });
 
 export const boards = pgTable("boards", {

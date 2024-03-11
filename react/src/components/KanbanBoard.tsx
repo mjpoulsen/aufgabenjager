@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import iKanbanCard from "../types/iKanbanCard";
 import KanbanList from "./KanbanList";
+import axios from "axios";
 
 const KanbanBoard = () => {
+  // todo: given this was a bit of a hack, need to revisit how lists display sequences are determined
   const DONE_KEY = Number.MAX_SAFE_INTEGER;
 
   const cardMap0: Record<string, iKanbanCard> = {
@@ -95,6 +97,19 @@ const KanbanBoard = () => {
   useEffect(() => {
     // Add the event listener when the component mounts
     document.addEventListener("keydown", handleKeyDown);
+
+    axios
+      .get("http://localhost:8000/api/board/1/data")
+      .then((response) => {
+        const data = response.data;
+        console.log(data);
+        // todo: set state with data from backend once the display sequence is returned for lists
+        // setListNameMapState(data.listNames);
+        // setKanbanMapState(data.tasks);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
 
     // Remove the event listener when the component unmounts
     return () => {
