@@ -1,4 +1,11 @@
-import { serial, text, pgTable, date, boolean } from "drizzle-orm/pg-core";
+import {
+  serial,
+  text,
+  pgTable,
+  date,
+  boolean,
+  integer,
+} from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 export const tasks = pgTable("tasks", {
@@ -7,12 +14,14 @@ export const tasks = pgTable("tasks", {
   description: text("description"),
   due_date: date("due_date"),
   completed: boolean("completed").notNull().default(false),
+  display_sequence: integer("display_sequence").notNull(),
   list_id: serial("list_id"),
 });
 
 export const lists = pgTable("lists", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
+  display_sequence: integer("display_sequence").notNull(),
   board_id: serial("board_id"),
 });
 

@@ -8,7 +8,7 @@ const { tasks } = schema;
 
 const client = new Client({
   user: "postgres",
-  host: "db",
+  host: "localhost",
   database: "postgres",
   password: "1234",
   port: 5432,
@@ -31,6 +31,7 @@ const createTables = async () => {
   (
     id SERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
+    display_sequence INTEGER NOT NULL,
     board_id SERIAL NOT NULL
   );`);
   await client.query(`CREATE TABLE IF NOT EXISTS boards 
@@ -95,6 +96,7 @@ app.post("/api/task", async (req: Request, res: Response) => {
       description: req.body.description,
       dueDate: req.body.due_date,
       completed: false,
+      display_sequence: 0,
       list_id: req.body.list_id,
     };
 
@@ -145,13 +147,11 @@ app.get("/api/board/:id/data", async (req: Request, res: Response) => {
       .from(schema.lists)
       .where(eq(schema.lists.board_id, parseInt(req.params.id, 10)));
 
-    const listNames = listsResultSet.reduce((acc: any, curr: any) => {
-      acc[curr.id] = curr.title;
-      return acc;
-    }, {} as Record<string, any>);
-
     const lists = listsResultSet.reduce((acc: any, curr: any) => {
-      acc[curr.id] = curr;
+      acc[curr.id] = {
+        title: curr.title,
+        display_sequence: curr.display_sequence,
+      };
       return acc;
     }, {} as Record<string, any>);
 
@@ -172,7 +172,7 @@ app.get("/api/board/:id/data", async (req: Request, res: Response) => {
 
     const response = {
       tasks,
-      listNames,
+      lists,
     };
 
     if (response) {
