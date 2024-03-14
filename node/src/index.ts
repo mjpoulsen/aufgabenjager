@@ -2,9 +2,10 @@ import express, { Express, Request, Response } from "express";
 import { Client, QueryResult } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "./schema";
-import { eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, ne } from "drizzle-orm";
 
 const { boards, lists, tasks } = schema;
+const DONE_DISPLAY_SEQUENCE = 2147483647;
 
 const client = new Client({
   user: "postgres",
@@ -126,12 +127,12 @@ app.get("/api/board/", async (req: Request, res: Response) => {
 });
 
 app.post("/api/board", async (req: Request, res: Response) => {
-  try {
-    if (req.body.title === undefined) {
-      res.status(400).send("title is required");
-      return;
-    }
+  if (req.body.title === undefined) {
+    res.status(400).send("title is required");
+    return;
+  }
 
+  try {
     const board = {
       title: req.body.title,
     };
@@ -141,7 +142,7 @@ app.post("/api/board", async (req: Request, res: Response) => {
     if (boardResult) {
       const doneList = {
         title: "Done",
-        display_sequence: 2147483647,
+        display_sequence: DONE_DISPLAY_SEQUENCE,
         board_id: boardResult[0].id,
       };
 
@@ -223,6 +224,45 @@ app.get("/api/list/", async (req: Request, res: Response) => {
 
     if (result) {
       res.status(200).send(result);
+    }
+  } catch (error) {
+    res.status(500).send(error);
+    console.log(error);
+  }
+});
+
+app.post("/api/list/", async (req: Request, res: Response) => {
+  if (req.body.title === undefined) {
+    res.status(400).send("title is required");
+    return;
+  } else if (req.body.board_id === undefined) {
+    res.status(400).send("board_id is required");
+    return;
+  }
+
+  try {
+    const list = {
+      title: req.body.title,
+      board_id: req.body.board_id,
+      display_sequence: 0,
+    };
+
+    const listsBelongingToBoard = await db
+      .select()
+      .from(schema.lists)
+      .where(
+        and(
+          eq(schema.lists.board_id, parseInt(list.board_id, 10)),
+          ne(schema.lists.display_sequence, DONE_DISPLAY_SEQUENCE)
+        )
+      );
+
+    list.display_sequence = listsBelongingToBoard.length + 1;
+
+    const listResult: any = await db.insert(lists).values(list).returning();
+
+    if (listResult) {
+      res.status(200).send(listResult);
     }
   } catch (error) {
     res.status(500).send(error);

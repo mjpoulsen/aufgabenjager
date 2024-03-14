@@ -42,10 +42,9 @@ Generates the `drizzle` directory and launches a daemon for the local studio.
 
 ## Todo
 
-- Ensure new boards always have a default list and a DONE list
 - Add the following APIs
   - GET List by ID and its Tasks
   - Put, Delete Board
-  - Post, Put, Delete List
+  - Put, Delete List
   - Post, Put, Delete Task
 - Verify schema.ts relations work when using Drizzle
