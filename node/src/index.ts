@@ -1,14 +1,14 @@
 import express, { Express, Request, Response } from "express";
-import { Client } from "pg";
+import { Client, QueryResult } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "./schema";
 import { eq, inArray } from "drizzle-orm";
 
-const { tasks } = schema;
+const { boards, lists, tasks } = schema;
 
 const client = new Client({
   user: "postgres",
-  host: "localhost",
+  host: "db",
   database: "postgres",
   password: "1234",
   port: 5432,
@@ -80,6 +80,7 @@ app.get("/api/task/:id", async (req: Request, res: Response) => {
 
 app.post("/api/task", async (req: Request, res: Response) => {
   try {
+    // todo figure out how to get serial id from list
     if (req.body.list_id === undefined) {
       res.status(400).send("list_id is required");
       return;
@@ -117,6 +118,38 @@ app.get("/api/board/", async (req: Request, res: Response) => {
 
     if (result) {
       res.status(200).send(result);
+    }
+  } catch (error) {
+    res.status(500).send(error);
+    console.log(error);
+  }
+});
+
+app.post("/api/board", async (req: Request, res: Response) => {
+  try {
+    if (req.body.title === undefined) {
+      res.status(400).send("title is required");
+      return;
+    }
+
+    const board = {
+      title: req.body.title,
+    };
+
+    const boardResult: any = await db.insert(boards).values(board).returning();
+
+    if (boardResult) {
+      const doneList = {
+        title: "Done",
+        display_sequence: 2147483647,
+        board_id: boardResult[0].id,
+      };
+
+      const listResult = await db.insert(lists).values(doneList);
+
+      if (listResult) {
+        res.status(200).send(boardResult);
+      }
     }
   } catch (error) {
     res.status(500).send(error);
