@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import iKanbanCard from "../types/iKanbanCard";
 import KanbanCard from "./KanbanCard";
+import { JSX } from "react/jsx-runtime";
 
 type KanbanListProps = {
   listId: string;
   listTitle: string;
-  cards: iKanbanCard[];
+  cardsMap: Record<string, iKanbanCard>;
   editCardId: string;
   onCardClick: (cardId: string) => void;
   onCardDelete: (cardId: string, listId: string) => void;
@@ -26,7 +27,7 @@ type KanbanListProps = {
 const KanbanList = ({
   listId,
   listTitle,
-  cards,
+  cardsMap,
   editCardId,
   onCardClick,
   onCardDelete,
@@ -57,7 +58,7 @@ const KanbanList = ({
     setTitle(e.target.value);
   };
 
-  const notDoneList = Number(listIdState) !== Number.MAX_SAFE_INTEGER;
+  const notDoneList = Number(listIdState) !== 2147483647;
 
   const listOnDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
     if (notDoneList) {
@@ -159,6 +160,40 @@ const KanbanList = ({
     }
   };
 
+  const displayKanbanCards = () => {
+    const cardsList: JSX.Element[] = [];
+
+    if (!cardsMap) {
+      return cardsList;
+    }
+
+    for (const cardId in cardsMap) {
+      const card = cardsMap[cardId];
+      cardsList.push(
+        <KanbanCard
+          key={cardId}
+          cardId={cardId}
+          listId={listIdState}
+          cardTitle={card.title}
+          description={card.description || ""}
+          dueDate={card.dueDate || ""}
+          completed={card.completed}
+          editMode={editCardId === cardId}
+          onCardClick={onCardClick}
+          onCardDelete={onCardDelete}
+          onCompletedChange={onCardComplete}
+          onCardDrag={onCardDrag}
+          dropCardReorder={dropCardReorder}
+          editCardTitle={editCardTitle}
+          editCardDescription={editCardDescription}
+          editDueDate={editDueDate}
+        />
+      );
+    }
+
+    return cardsList;
+  };
+
   return (
     <div
       className="kanban-list flex-col grow m-2 bg-slate-500 rounded-lg shadow-lg p-2"
@@ -173,28 +208,7 @@ const KanbanList = ({
         {renderTitle()}
         {renderDeleteListButton()}
       </div>
-      <div className="kanban-list-cards grow">
-        {cards.map((card: iKanbanCard, index: number) => (
-          <KanbanCard
-            key={index}
-            cardId={card.id}
-            listId={listIdState}
-            cardTitle={card.title}
-            description={card.description || ""}
-            dueDate={card.dueDate || ""}
-            completed={card.completed}
-            editMode={editCardId === card.id}
-            onCardClick={onCardClick}
-            onCardDelete={onCardDelete}
-            onCompletedChange={onCardComplete}
-            onCardDrag={onCardDrag}
-            dropCardReorder={dropCardReorder}
-            editCardTitle={editCardTitle}
-            editCardDescription={editCardDescription}
-            editDueDate={editDueDate}
-          />
-        ))}
-      </div>
+      <div className="kanban-list-cards grow">{displayKanbanCards()}</div>
       {renderAddItemButton()}
     </div>
   );

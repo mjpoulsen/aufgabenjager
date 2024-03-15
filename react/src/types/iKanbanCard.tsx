@@ -1,7 +1,7 @@
 export default interface iKanbanCard {
   id: string;
   title: string;
-  listId: string;
+  list_id: string;
   description?: string;
   dueDate?: string; // yyyy-mm-dd
   completed: boolean;
