@@ -191,7 +191,11 @@ const KanbanList = ({
       );
     }
 
-    return cardsList;
+    return cardsList.sort((a, b) => {
+      const cardA = cardsMap[a.key?.toString() || ""];
+      const cardB = cardsMap[b.key?.toString() || ""];
+      return cardA.display_sequence - cardB.display_sequence;
+    });
   };
 
   return (

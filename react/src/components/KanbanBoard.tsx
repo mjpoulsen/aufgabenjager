@@ -154,7 +154,7 @@ const KanbanBoard = () => {
       title: `Card ${newCardId}`,
       list_id: listId,
       completed: false,
-      displayOrder: Number.MAX_SAFE_INTEGER,
+      display_sequence: Number.MAX_SAFE_INTEGER,
     };
 
     kanbanMapState[listId][newCardId] = newCard;
@@ -300,17 +300,17 @@ const KanbanBoard = () => {
     const draggedCard = kanbanMapState[draggedCardListId][draggedCardId];
     const otherCard = kanbanMapState[cardListId][cardId];
 
-    const otherCardDisplayOrder = otherCard.displayOrder;
+    const otherCardDisplayOrder = otherCard.display_sequence;
 
     for (const card of Object.values(kanbanMapState[cardListId])) {
-      if (draggedCard.displayOrder >= otherCardDisplayOrder) {
-        card.displayOrder += 1;
+      if (draggedCard.display_sequence >= otherCardDisplayOrder) {
+        card.display_sequence += 1;
       } else {
-        card.displayOrder -= 1;
+        card.display_sequence -= 1;
       }
     }
 
-    draggedCard.displayOrder = otherCardDisplayOrder;
+    draggedCard.display_sequence = otherCardDisplayOrder;
 
     if (draggedCardListId !== cardListId) {
       delete kanbanMapState[draggedCardListId][draggedCardId];
