@@ -110,10 +110,13 @@ app.post("/api/task", async (req: Request, res: Response) => {
       .from(schema.tasks)
       .where(eq(schema.tasks.list_id, parseInt(task.list_id, 10)));
 
-    // todo: this works for now but if the length is less than
-    // the display_sequence of a task, the new task will not appear
-    // at the end of the list
-    task.display_sequence = tasksBelongingToList.length + 1;
+    task.display_sequence =
+      tasksBelongingToList.reduce((acc: number, curr: any) => {
+        if (curr.display_sequence > acc) {
+          return curr.display_sequence;
+        }
+        return acc;
+      }, 0) + 1;
 
     const result = await db.insert(tasks).values(task).returning();
 
@@ -270,10 +273,13 @@ app.post("/api/list/", async (req: Request, res: Response) => {
         )
       );
 
-    // todo: this works for now but if the length is less than
-    // the display_sequence of a list, the new list will not appear
-    // at the end of the board
-    list.display_sequence = listsBelongingToBoard.length + 1;
+    list.display_sequence =
+      listsBelongingToBoard.reduce((acc: number, curr: any) => {
+        if (curr.display_sequence > acc) {
+          return curr.display_sequence;
+        }
+        return acc;
+      }, 0) + 1;
 
     const listResult: any = await db.insert(lists).values(list).returning();
 
