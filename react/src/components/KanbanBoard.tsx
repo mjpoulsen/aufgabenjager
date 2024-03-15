@@ -280,7 +280,6 @@ const KanbanBoard = () => {
     setKanbanMapState({ ...kanbanMapState });
   };
 
-  // todo this is not working
   const dropCardReorder = (
     e: React.DragEvent<HTMLDivElement>,
     cardId: string
