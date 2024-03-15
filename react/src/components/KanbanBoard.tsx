@@ -3,6 +3,21 @@ import iKanbanCard from "../types/iKanbanCard";
 import KanbanList from "./KanbanList";
 import axios from "axios";
 
+type ListResource = {
+  title: string;
+  display_sequence: string;
+};
+
+type TaskResource = {
+  id: number;
+  title: string;
+  description: string;
+  due_date: string;
+  completed: boolean;
+  display_sequence: string;
+  list_id: string;
+};
+
 const KanbanBoard = () => {
   // todo: given this was a bit of a hack, need to revisit how lists display sequences are determined
   const DONE_KEY = Number.MAX_SAFE_INTEGER;
@@ -20,21 +35,21 @@ const KanbanBoard = () => {
     "2": {
       id: "2",
       title: "Card 2",
-      listId: "1",
+      listId: "0",
       completed: false,
       displayOrder: 2,
     },
     "3": {
       id: "3",
       title: "Card 3",
-      listId: "1",
+      listId: "0",
       completed: false,
       displayOrder: 3,
     },
     "4": {
       id: "4",
       title: "Card 4",
-      listId: "1",
+      listId: "0",
       completed: false,
       displayOrder: 4,
     },
@@ -81,7 +96,7 @@ const KanbanBoard = () => {
     DONE_KEY: doneMap,
   };
 
-  const listNameMap = {
+  const listNameMap: Record<string, string> = {
     0: "List 0",
     1: "List 1",
     DONE_KEY: "Done",
@@ -102,10 +117,49 @@ const KanbanBoard = () => {
       .get("http://localhost:8000/api/board/1/data")
       .then((response) => {
         const data = response.data;
-        console.log(data);
-        // todo: set state with data from backend once the display sequence is returned for lists
-        // setListNameMapState(data.listNames);
-        // setKanbanMapState(data.tasks);
+
+        // todo: this solution is a bit smelly.
+        // The keys have to be indexed as 0. That may not seem
+        // obvious but `kanbanMapToLists` forces this condition.
+        // It would be nice to not have to index the keys.
+        // I suspect the issue stems from how KanbanList
+        // are built.
+
+        const lists: Record<string, ListResource> = data.lists;
+        const tasks: Record<string, Record<string, TaskResource>> = data.tasks;
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const tasksMap: Record<string, Record<string, any>> = {};
+
+        const names: Record<string, string> = Object.values(lists).reduce(
+          (
+            acc: Record<string, string>,
+            curr: { display_sequence: string; title: string }
+          ) => {
+            const display_sequence = Number(curr.display_sequence);
+            const key =
+              display_sequence !== 2147483647
+                ? (display_sequence - 1).toString()
+                : `DONE_KEY`;
+            acc[key] = curr.title;
+            return acc;
+          },
+          {}
+        );
+
+        for (const listId in names) {
+          tasksMap[listId] = {};
+        }
+
+        for (const listId in tasks) {
+          const listTasks = tasks[listId];
+          const newListId = Number(listId) - 1;
+
+          tasksMap[newListId] = listTasks;
+        }
+
+        setKanbanMapState(tasksMap);
+        setListNameMapState(names);
       })
       .catch((err) => {
         console.error(err);
@@ -242,7 +296,7 @@ const KanbanBoard = () => {
   };
 
   const editListTitle = (listId: string, title: string) => {
-    listNameMapState[Number(listId) as keyof typeof listNameMap] = title;
+    listNameMapState[listId as keyof typeof listNameMap] = title;
 
     setListNameMapState({ ...listNameMapState });
   };
@@ -400,7 +454,7 @@ const KanbanBoard = () => {
       return listNameMapState.DONE_KEY as string;
     }
 
-    return listNameMapState[index as keyof typeof listNameMap];
+    return listNameMapState[index.toString() as keyof typeof listNameMap];
   };
 
   const retrieveListIndex = (index: number) => {
@@ -416,7 +470,7 @@ const KanbanBoard = () => {
   const addNewList = () => {
     const length = Object.keys(kanbanMapState).length - 1;
 
-    const listNameKey = length as keyof typeof listNameMapState;
+    const listNameKey = length.toString() as keyof typeof listNameMapState;
     listNameMapState[listNameKey] = `List ${length}`;
 
     setListNameMapState({ ...listNameMapState });
