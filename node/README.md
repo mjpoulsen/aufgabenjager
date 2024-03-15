@@ -46,5 +46,5 @@ Generates the `drizzle` directory and launches a daemon for the local studio.
   - GET List by ID and its Tasks
   - Put, Delete Board
   - Put, Delete List
-  - Post, Put, Delete Task
+  - Put, Delete Task
 - Verify schema.ts relations work when using Drizzle

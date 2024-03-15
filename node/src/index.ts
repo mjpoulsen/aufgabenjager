@@ -1,5 +1,5 @@
 import express, { Express, Request, Response } from "express";
-import { Client, QueryResult } from "pg";
+import { Client } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "./schema";
 import { and, eq, inArray, ne } from "drizzle-orm";
@@ -81,7 +81,6 @@ app.get("/api/task/:id", async (req: Request, res: Response) => {
 
 app.post("/api/task", async (req: Request, res: Response) => {
   try {
-    // todo figure out how to get serial id from list
     if (req.body.list_id === undefined) {
       res.status(400).send("list_id is required");
       return;
@@ -93,16 +92,30 @@ app.post("/api/task", async (req: Request, res: Response) => {
       return;
     }
 
+    const date = new Date(req.body.due_date);
+
     const task = {
       title: req.body.title,
-      description: req.body.description,
-      dueDate: req.body.due_date,
+      description: req.body.description ? req.body.description : "",
+      due_date: `${date.getFullYear()}-${
+        date.getMonth() + 1
+      }-${date.getDate()}`,
       completed: false,
       display_sequence: 0,
       list_id: req.body.list_id,
     };
 
-    const result = await db.insert(tasks).values(task);
+    const tasksBelongingToList = await db
+      .select()
+      .from(schema.tasks)
+      .where(eq(schema.tasks.list_id, parseInt(task.list_id, 10)));
+
+    // todo: this works for now but if the length is less than
+    // the display_sequence of a task, the new task will not appear
+    // at the end of the list
+    task.display_sequence = tasksBelongingToList.length + 1;
+
+    const result = await db.insert(tasks).values(task).returning();
 
     if (result) {
       res.status(200).send(result);
@@ -257,6 +270,9 @@ app.post("/api/list/", async (req: Request, res: Response) => {
         )
       );
 
+    // todo: this works for now but if the length is less than
+    // the display_sequence of a list, the new list will not appear
+    // at the end of the board
     list.display_sequence = listsBelongingToBoard.length + 1;
 
     const listResult: any = await db.insert(lists).values(list).returning();
