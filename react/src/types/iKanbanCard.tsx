@@ -3,7 +3,7 @@ export default interface iKanbanCard {
   title: string;
   list_id: string;
   description?: string;
-  dueDate?: string; // yyyy-mm-dd
+  due_date?: string; // yyyy-mm-dd
   completed: boolean;
   display_sequence: number;
 }

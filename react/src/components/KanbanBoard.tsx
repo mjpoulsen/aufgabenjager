@@ -244,7 +244,7 @@ const KanbanBoard = () => {
       return;
     }
 
-    card.dueDate = dueDate;
+    card.due_date = dueDate;
 
     setKanbanMapState({ ...kanbanMapState, [listId]: list });
   };

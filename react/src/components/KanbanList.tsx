@@ -176,7 +176,7 @@ const KanbanList = ({
           listId={listIdState}
           cardTitle={card.title}
           description={card.description || ""}
-          dueDate={card.dueDate || ""}
+          dueDate={card.due_date || ""}
           completed={card.completed}
           editMode={editCardId === cardId}
           onCardClick={onCardClick}
