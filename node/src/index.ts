@@ -79,6 +79,39 @@ app.get("/api/task/:id", async (req: Request, res: Response) => {
   }
 });
 
+app.put("/api/task/:id", async (req: Request, res: Response) => {
+  try {
+    if (
+      req.body.title === undefined &&
+      req.body.due_date === undefined &&
+      req.body.completed === undefined &&
+      req.body.display_sequence === undefined &&
+      req.body.list_id === undefined &&
+      req.body.description === undefined
+    ) {
+      res
+        .status(400)
+        .send(
+          "title, due_date, display_sequence, list_id, description or completed is required"
+        );
+      return;
+    }
+
+    const result = await db
+      .update(schema.tasks)
+      .set({ ...req.body })
+      .where(eq(schema.tasks.id, parseInt(req.params.id, 10)))
+      .returning();
+
+    if (result) {
+      res.status(200).send(result);
+    }
+  } catch (error) {
+    res.status(500).send(error);
+    console.log(error);
+  }
+});
+
 app.post("/api/task", async (req: Request, res: Response) => {
   try {
     if (req.body.list_id === undefined) {
@@ -180,6 +213,28 @@ app.get("/api/board/:id", async (req: Request, res: Response) => {
       .select()
       .from(schema.boards)
       .where(eq(schema.boards.id, parseInt(req.params.id, 10)));
+
+    if (result) {
+      res.status(200).send(result);
+    }
+  } catch (error) {
+    res.status(500).send(error);
+    console.log(error);
+  }
+});
+
+app.put("/api/board/:id", async (req: Request, res: Response) => {
+  try {
+    if (req.body.title === undefined) {
+      res.status(400).send("title is required");
+      return;
+    }
+
+    const result = await db
+      .update(schema.boards)
+      .set({ ...req.body })
+      .where(eq(schema.boards.id, parseInt(req.params.id, 10)))
+      .returning();
 
     if (result) {
       res.status(200).send(result);
@@ -298,6 +353,31 @@ app.get("/api/list/:id", async (req: Request, res: Response) => {
       .select()
       .from(schema.lists)
       .where(eq(schema.lists.id, parseInt(req.params.id, 10)));
+
+    if (result) {
+      res.status(200).send(result);
+    }
+  } catch (error) {
+    res.status(500).send(error);
+    console.log(error);
+  }
+});
+
+app.put("/api/list/:id", async (req: Request, res: Response) => {
+  try {
+    if (
+      req.body.title === undefined &&
+      req.body.display_sequence === undefined
+    ) {
+      res.status(400).send("title or display_sequence is required");
+      return;
+    }
+
+    const result = await db
+      .update(schema.lists)
+      .set({ ...req.body })
+      .where(eq(schema.lists.id, parseInt(req.params.id, 10)))
+      .returning();
 
     if (result) {
       res.status(200).send(result);
