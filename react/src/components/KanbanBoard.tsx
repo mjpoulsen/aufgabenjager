@@ -358,11 +358,26 @@ const KanbanBoard = () => {
   const addNewList = () => {
     const length = Object.keys(kanbanMapState).length;
 
-    const listNameKey = length.toString() as keyof typeof listNameMapState;
-    listNameMapState[listNameKey] = `List ${length}`;
+    const newList = {
+      title: `New List`,
+      display_sequence: length.toString() + 1,
+      board_id: 1, // todo once more boards are added, this should be dynamic
+      id: "",
+    };
 
-    setListNameMapState({ ...listNameMapState });
-    setKanbanMapState({ ...kanbanMapState, [length]: {} });
+    axios
+      .post("http://localhost:8000/api/list", newList)
+      .then((response) => {
+        newList.id = response.data.id;
+        const listNameKey = length.toString() as keyof typeof listNameMapState;
+        listNameMapState[listNameKey] = newList.title;
+
+        setListNameMapState({ ...listNameMapState });
+        setKanbanMapState({ ...kanbanMapState, [length]: {} });
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   };
 
   const onDeleteList = (listId: string) => {

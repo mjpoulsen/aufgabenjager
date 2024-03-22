@@ -309,13 +309,16 @@ app.post("/api/list/", async (req: Request, res: Response) => {
   } else if (req.body.board_id === undefined) {
     res.status(400).send("board_id is required");
     return;
+  } else if (req.body.display_sequence === undefined) {
+    res.status(400).send("display_sequence is required");
+    return;
   }
 
   try {
     const list = {
       title: req.body.title,
       board_id: req.body.board_id,
-      display_sequence: 0,
+      display_sequence: req.body.display_sequence,
     };
 
     const listsBelongingToBoard = await db
