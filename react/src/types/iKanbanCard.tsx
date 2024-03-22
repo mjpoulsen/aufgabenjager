@@ -1,5 +1,5 @@
 export default interface iKanbanCard {
-  id: string;
+  id?: string;
   title: string;
   list_id: string;
   description?: string;

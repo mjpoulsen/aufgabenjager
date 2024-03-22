@@ -146,20 +146,30 @@ const KanbanBoard = () => {
 
   const onCardAdd = (listId: string) => {
     console.log("added card to list", listId);
-    // temp id -- will be replaced with uuid once integrated with backend
-    const newCardId = `${Math.floor(Math.random() * (100 - 10 + 1) + 10)}`;
+
+    const listLength = Object.keys(kanbanMapState[listId]).length + 1;
 
     const newCard: iKanbanCard = {
-      id: newCardId,
-      title: `Card ${newCardId}`,
+      title: `New Card`,
       list_id: listId,
       completed: false,
-      display_sequence: Number.MAX_SAFE_INTEGER,
+      display_sequence: listLength,
+      due_date: new Date().toJSON().slice(0, 10),
     };
 
-    kanbanMapState[listId][newCardId] = newCard;
+    axios
+      .post("http://localhost:8000/api/task", newCard)
+      .then((response) => {
+        const newCardId = response.data.id;
+        newCard.id = newCardId;
 
-    setKanbanMapState({ ...kanbanMapState });
+        kanbanMapState[listId][newCardId] = newCard;
+
+        setKanbanMapState({ ...kanbanMapState });
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   };
 
   const editCardTitle = (cardId: string, title: string) => {
