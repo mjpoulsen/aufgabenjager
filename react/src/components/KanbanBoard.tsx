@@ -2,11 +2,7 @@ import { useEffect, useState } from "react";
 import iKanbanCard from "../types/iKanbanCard";
 import KanbanList from "./KanbanList";
 import axios from "axios";
-
-type ListResource = {
-  title: string;
-  display_sequence: string;
-};
+import iKanbanList from "../types/iKanbanList";
 
 type TaskResource = {
   id: number;
@@ -23,7 +19,7 @@ const KanbanBoard = () => {
   const DONE_KEY = 2147483647;
 
   const emptyKanbanMap: Record<string, Record<string, iKanbanCard>> = {};
-
+  const emptyKanbanListMap: Record<string, iKanbanList> = {};
   const emptyListNameMap: Record<string, string> = {};
 
   const [editCardId, setEditCardId] = useState("");
@@ -32,6 +28,7 @@ const KanbanBoard = () => {
   const [draggedCardId, setDraggedCardId] = useState("");
   const [listNameMapState, setListNameMapState] = useState(emptyListNameMap);
   const [draggedListId, setDraggedListId] = useState("");
+  const [kanbanListMap, setKanbanListMap] = useState(emptyKanbanListMap);
 
   useEffect(() => {
     // Add the event listener when the component mounts
@@ -42,35 +39,41 @@ const KanbanBoard = () => {
       .then((response) => {
         const data = response.data;
 
-        const lists: Record<string, ListResource> = data.lists;
+        const lists: Record<string, iKanbanList> = data.lists;
+
+        // add a DONE list to set of list; storing this in the db doesn't add much value because every board has one and tasks do not have their list_id updated to the DONE list key
+        lists[DONE_KEY.toString()] = {
+          id: DONE_KEY.toString(),
+          title: "DONE",
+          display_sequence: DONE_KEY,
+          board_id: 1, // todo make this the current board when more than one is supported
+        };
+
         const tasks: Record<string, Record<string, TaskResource>> = data.tasks;
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const tasksMap: Record<string, Record<string, any>> = {};
 
-        const names: Record<string, string> = Object.values(lists).reduce(
-          (
-            acc: Record<string, string>,
-            curr: { display_sequence: string; title: string }
-          ) => {
-            const display_sequence = Number(curr.display_sequence);
-            acc[display_sequence] = curr.title;
-            return acc;
-          },
-          {}
-        );
+        const names: Record<string, string> = {};
 
-        for (const listId in names) {
+        for (const listId in lists) {
+          names[listId] = lists[listId].title;
           tasksMap[listId] = {};
         }
 
         for (const listId in tasks) {
-          const listTasks = tasks[listId];
-          const newListId = Number(listId);
+          tasksMap[listId] = tasks[listId];
 
-          tasksMap[newListId] = listTasks;
+          for (const taskId in tasksMap[listId]) {
+            const task = tasksMap[listId][taskId];
+            if (task.completed) {
+              delete tasksMap[listId][taskId];
+              tasksMap[DONE_KEY][taskId] = task;
+            }
+          }
         }
 
+        setKanbanListMap(lists);
         setKanbanMapState(tasksMap);
         setListNameMapState(names);
       })
@@ -102,21 +105,34 @@ const KanbanBoard = () => {
       return;
     }
 
-    card.completed = !card.completed;
+    const completed = !card.completed;
 
-    // If completed, move card to `done` list.
-    // if not completed, move card back to original list.
-    if (card.completed) {
-      delete list[id];
-      kanbanMapState[DONE_KEY][id] = card;
-      // update original list
-      setKanbanMapState({ ...kanbanMapState, [listId]: list });
-    } else {
-      delete kanbanMapState[DONE_KEY][id];
-      kanbanMapState[card.list_id][id] = card;
-      // update done list
-      setKanbanMapState({ ...kanbanMapState });
-    }
+    axios
+      .put(`http://localhost:8000/api/task/${card.id}`, {
+        completed: completed,
+      })
+      .then((response) => {
+        if (response.data) {
+          card.completed = completed;
+
+          // If completed, move card to `done` list.
+          // if not completed, move card back to original list.
+          if (card.completed) {
+            delete list[id];
+            kanbanMapState[DONE_KEY][id] = card;
+            // update original list
+            setKanbanMapState({ ...kanbanMapState, [listId]: list });
+          } else {
+            delete kanbanMapState[DONE_KEY][id];
+            kanbanMapState[card.list_id][id] = card;
+            // update done list
+            setKanbanMapState({ ...kanbanMapState });
+          }
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   };
 
   const findListIdFromCardId = (cardId: string) => {
@@ -139,19 +155,28 @@ const KanbanBoard = () => {
   };
 
   const onCardDelete = (id: string, listId: keyof typeof kanbanMapState) => {
-    delete kanbanMapState[listId][id];
-
-    setKanbanMapState({ ...kanbanMapState });
+    axios
+      .delete(`http://localhost:8000/api/task/${id}`)
+      .then((response) => {
+        if (response.data) {
+          delete kanbanMapState[listId][id];
+          setKanbanMapState({ ...kanbanMapState });
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   };
 
-  const onCardAdd = (listId: string) => {
-    console.log("added card to list", listId);
+  const onCardAdd = (kanbanMapStateKey: string) => {
+    console.log("added card to list", kanbanMapStateKey);
 
-    const listLength = Object.keys(kanbanMapState[listId]).length + 1;
+    const listLength =
+      Object.keys(kanbanMapState[kanbanMapStateKey]).length + 1;
 
     const newCard: iKanbanCard = {
       title: `New Card`,
-      list_id: listId,
+      list_id: kanbanMapStateKey,
       completed: false,
       display_sequence: listLength,
       due_date: new Date().toJSON().slice(0, 10),
@@ -163,7 +188,7 @@ const KanbanBoard = () => {
         const newCardId = response.data.id;
         newCard.id = newCardId;
 
-        kanbanMapState[listId][newCardId] = newCard;
+        kanbanMapState[kanbanMapStateKey][newCardId] = newCard;
 
         setKanbanMapState({ ...kanbanMapState });
       })
@@ -194,15 +219,31 @@ const KanbanBoard = () => {
       return;
     }
 
-    card.title = title;
-
-    setKanbanMapState({ ...kanbanMapState, [listId]: list });
+    axios
+      .put(`http://localhost:8000/api/task/${cardId}`, { title: title })
+      .then((response) => {
+        if (response.data) {
+          card.title = title;
+          setKanbanMapState({ ...kanbanMapState, [listId]: list });
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   };
 
   const editListTitle = (listId: string, title: string) => {
-    listNameMapState[listId as keyof typeof listNameMapState] = title;
-
-    setListNameMapState({ ...listNameMapState });
+    axios
+      .put(`http://localhost:8000/api/list/${listId}`, { title: title })
+      .then((response) => {
+        if (response.data) {
+          listNameMapState[listId as keyof typeof listNameMapState] = title;
+          setListNameMapState({ ...listNameMapState });
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   };
 
   const editCardDescription = (cardId: string, description: string) => {
@@ -227,9 +268,19 @@ const KanbanBoard = () => {
       return;
     }
 
-    card.description = description;
-
-    setKanbanMapState({ ...kanbanMapState, [listId]: list });
+    axios
+      .put(`http://localhost:8000/api/task/${cardId}`, {
+        description: description,
+      })
+      .then((response) => {
+        if (response.data) {
+          card.description = description;
+          setKanbanMapState({ ...kanbanMapState, [listId]: list });
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   };
 
   const editDueDate = (cardId: string, dueDate: string) => {
@@ -254,9 +305,17 @@ const KanbanBoard = () => {
       return;
     }
 
-    card.due_date = dueDate;
-
-    setKanbanMapState({ ...kanbanMapState, [listId]: list });
+    axios
+      .put(`http://localhost:8000/api/task/${cardId}`, { due_date: dueDate })
+      .then((response) => {
+        if (response.data) {
+          card.due_date = dueDate;
+          setKanbanMapState({ ...kanbanMapState, [listId]: list });
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   };
 
   const onListDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -270,24 +329,38 @@ const KanbanBoard = () => {
       return;
     }
 
-    const tempList = kanbanMapState[draggedListId];
-    const dropEnterList = kanbanMapState[dropEnterListId];
+    const reqBody: Record<string, number> = {};
 
-    kanbanMapState[draggedListId] = dropEnterList;
-    kanbanMapState[dropEnterListId] = tempList;
+    reqBody[draggedListId] = kanbanListMap[dropEnterListId].display_sequence;
+    reqBody[dropEnterListId] = kanbanListMap[draggedListId].display_sequence;
 
-    const tempName =
-      listNameMapState[draggedListId as keyof typeof listNameMapState];
-    const dropEnterName =
-      listNameMapState[dropEnterListId as keyof typeof listNameMapState];
+    axios
+      .put(`http://localhost:8000/api/list/reorder`, reqBody)
+      .then((response) => {
+        if (response.data) {
+          const tempList = kanbanMapState[draggedListId];
+          const dropEnterList = kanbanMapState[dropEnterListId];
 
-    listNameMapState[draggedListId as keyof typeof listNameMapState] =
-      dropEnterName;
-    listNameMapState[dropEnterListId as keyof typeof listNameMapState] =
-      tempName;
+          kanbanMapState[draggedListId] = dropEnterList;
+          kanbanMapState[dropEnterListId] = tempList;
 
-    setListNameMapState({ ...listNameMapState });
-    setKanbanMapState({ ...kanbanMapState });
+          const tempName =
+            listNameMapState[draggedListId as keyof typeof listNameMapState];
+          const dropEnterName =
+            listNameMapState[dropEnterListId as keyof typeof listNameMapState];
+
+          listNameMapState[draggedListId as keyof typeof listNameMapState] =
+            dropEnterName;
+          listNameMapState[dropEnterListId as keyof typeof listNameMapState] =
+            tempName;
+
+          setListNameMapState({ ...listNameMapState });
+          setKanbanMapState({ ...kanbanMapState });
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   };
 
   const dropCardReorder = (
@@ -311,23 +384,53 @@ const KanbanBoard = () => {
 
     const otherCardDisplayOrder = otherCard.display_sequence;
 
+    const reqBody: Record<string, number> = {};
+
     for (const card of Object.values(kanbanMapState[cardListId])) {
       if (draggedCard.display_sequence >= otherCardDisplayOrder) {
         card.display_sequence += 1;
       } else {
         card.display_sequence -= 1;
       }
+
+      if (card.id) {
+        reqBody[card.id] = card.display_sequence;
+      }
     }
 
     draggedCard.display_sequence = otherCardDisplayOrder;
 
-    if (draggedCardListId !== cardListId) {
-      delete kanbanMapState[draggedCardListId][draggedCardId];
-      kanbanMapState[cardListId][draggedCardId] = draggedCard;
+    if (draggedCard.id) {
+      reqBody[draggedCard.id] = draggedCard.display_sequence;
     }
 
-    setDraggedCardId("");
-    setKanbanMapState({ ...kanbanMapState });
+    axios
+      .put(`http://localhost:8000/api/task/reorder`, reqBody)
+      .then((response) => {
+        if (response.data) {
+          if (draggedCardListId !== cardListId) {
+            axios
+              .put(`http://localhost:8000/api/task/${draggedCardId}`, {
+                list_id: cardListId,
+              })
+              .then((response) => {
+                if (response.data) {
+                  delete kanbanMapState[draggedCardListId][draggedCardId];
+                  kanbanMapState[cardListId][draggedCardId] = draggedCard;
+                }
+              })
+              .catch((err) => {
+                console.error(err);
+              });
+          }
+
+          setDraggedCardId("");
+          setKanbanMapState({ ...kanbanMapState });
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   };
 
   const onCardDrag = (e: React.DragEvent<HTMLDivElement>, cardId: string) => {
@@ -358,9 +461,9 @@ const KanbanBoard = () => {
   const addNewList = () => {
     const length = Object.keys(kanbanMapState).length;
 
-    const newList = {
+    const newList: iKanbanList = {
       title: `New List`,
-      display_sequence: length.toString() + 1,
+      display_sequence: length,
       board_id: 1, // todo once more boards are added, this should be dynamic
       id: "",
     };
@@ -368,12 +471,14 @@ const KanbanBoard = () => {
     axios
       .post("http://localhost:8000/api/list", newList)
       .then((response) => {
-        newList.id = response.data.id;
-        const listNameKey = length.toString() as keyof typeof listNameMapState;
-        listNameMapState[listNameKey] = newList.title;
+        newList.id = response.data[0].id;
+        listNameMapState[newList.id] = newList.title;
+        kanbanMapState[newList.id] = {};
+        kanbanListMap[newList.id] = newList;
 
         setListNameMapState({ ...listNameMapState });
-        setKanbanMapState({ ...kanbanMapState, [length]: {} });
+        setKanbanMapState({ ...kanbanMapState });
+        setKanbanListMap({ ...kanbanListMap})
       })
       .catch((err) => {
         console.error(err);
@@ -388,23 +493,32 @@ const KanbanBoard = () => {
       return;
     }
 
-    delete kanbanMapState[listId];
-    delete listNameMapState[listId as keyof typeof listNameMapState];
+    axios
+      .delete(`http://localhost:8000/api/list/${listId}`)
+      .then((response) => {
+        if (response.data) {
+          delete kanbanMapState[listId];
+          delete listNameMapState[listId as keyof typeof listNameMapState];
 
-    setKanbanMapState({ ...kanbanMapState });
+          setKanbanMapState({ ...kanbanMapState });
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   };
 
   const displayKanbanLists = () => {
     const listsToDisplay = [];
-    for (const listId in kanbanMapState) {
-      const kanbanMap = kanbanMapState[listId];
-      const listIdForTitle = Number(listId);
+
+    for (const kanbanMapKey in kanbanMapState) {
+      const kanbanMap = kanbanMapState[kanbanMapKey];
 
       listsToDisplay.push(
         <KanbanList
-          key={listId}
-          listId={listId}
-          listTitle={retrieveListTitle(listIdForTitle)}
+          key={kanbanListMap[kanbanMapKey].display_sequence}
+          listId={kanbanMapKey}
+          listTitle={retrieveListTitle(Number(kanbanMapKey))}
           cardsMap={kanbanMap}
           editCardId={editCardId}
           onCardClick={onCardClick}
@@ -425,7 +539,11 @@ const KanbanBoard = () => {
       );
     }
 
-    return listsToDisplay;
+    return listsToDisplay.sort((a, b) => {
+      const aKey = Number(a.key) || 0;
+      const bKey = Number(b.key) || 0;
+      return aKey - bKey;
+    });
   };
 
   return (
