@@ -2,10 +2,9 @@ import express, { Express, Request, Response } from "express";
 import { Client } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "./schema";
-import { and, eq, inArray, ne } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 
 const { boards, lists, tasks } = schema;
-const DONE_DISPLAY_SEQUENCE = 2147483647;
 
 const client = new Client({
   user: "postgres",
@@ -79,6 +78,34 @@ app.get("/api/task/:id", async (req: Request, res: Response) => {
   }
 });
 
+app.put("/api/task/reorder", async (req: Request, res: Response) => {
+  try {
+    const batchArray = [];
+
+    const body = req.body;
+
+    for (const key in body) {
+      const value = body[key];
+      batchArray.push(
+        await db
+          .update(schema.tasks)
+          .set({ display_sequence: value })
+          .where(eq(schema.tasks.id, parseInt(key, 10)))
+          .returning()
+      );
+    }
+
+    if (batchArray.length > 0) {
+      res.status(200).send(batchArray);
+    } else {
+      res.status(400).send("No tasks to update");
+    }
+  } catch (error) {
+    res.status(500).send(error);
+    console.log(error);
+  }
+});
+
 app.put("/api/task/:id", async (req: Request, res: Response) => {
   try {
     if (
@@ -100,6 +127,22 @@ app.put("/api/task/:id", async (req: Request, res: Response) => {
     const result = await db
       .update(schema.tasks)
       .set({ ...req.body })
+      .where(eq(schema.tasks.id, parseInt(req.params.id, 10)))
+      .returning();
+
+    if (result) {
+      res.status(200).send(result);
+    }
+  } catch (error) {
+    res.status(500).send(error);
+    console.log(error);
+  }
+});
+
+app.delete("/api/task/:id", async (req: Request, res: Response) => {
+  try {
+    const result = await db
+      .delete(schema.tasks)
       .where(eq(schema.tasks.id, parseInt(req.params.id, 10)))
       .returning();
 
@@ -189,17 +232,7 @@ app.post("/api/board", async (req: Request, res: Response) => {
     const boardResult: any = await db.insert(boards).values(board).returning();
 
     if (boardResult) {
-      const doneList = {
-        title: "Done",
-        display_sequence: DONE_DISPLAY_SEQUENCE,
-        board_id: boardResult[0].id,
-      };
-
-      const listResult = await db.insert(lists).values(doneList);
-
-      if (listResult) {
-        res.status(200).send(boardResult);
-      }
+      res.status(200).send(boardResult);
     }
   } catch (error) {
     res.status(500).send(error);
@@ -238,6 +271,46 @@ app.put("/api/board/:id", async (req: Request, res: Response) => {
 
     if (result) {
       res.status(200).send(result);
+    }
+  } catch (error) {
+    res.status(500).send(error);
+    console.log(error);
+  }
+});
+
+app.delete("/api/board/:id", async (req: Request, res: Response) => {
+  try {
+    const resultDeleteBoard = await db
+      .delete(schema.boards)
+      .where(eq(schema.boards.id, parseInt(req.params.id, 10)))
+      .returning();
+
+    if (resultDeleteBoard) {
+      const resultDeleteList = await db
+        .delete(schema.lists)
+        .where(eq(schema.lists.board_id, parseInt(req.params.id, 10)))
+        .returning();
+
+      const listIds = Object.values(resultDeleteList).map((list) => list.id);
+
+      if (resultDeleteList) {
+        Object.values(listIds).forEach(async (listId) => {
+          const resultDeleteTasks = await db
+            .delete(schema.tasks)
+            .where(eq(schema.tasks.list_id, listId))
+            .returning();
+
+          if (resultDeleteTasks) {
+            console.log(`No tasks found for list id for ${listId}`);
+          }
+        });
+      } else {
+        console.log(`No list found for board id ${req.params.id}`);
+      }
+
+      res.status(200).send(resultDeleteBoard);
+    } else {
+      res.status(400).send("Board not found");
     }
   } catch (error) {
     res.status(500).send(error);
@@ -324,12 +397,7 @@ app.post("/api/list/", async (req: Request, res: Response) => {
     const listsBelongingToBoard = await db
       .select()
       .from(schema.lists)
-      .where(
-        and(
-          eq(schema.lists.board_id, parseInt(list.board_id, 10)),
-          ne(schema.lists.display_sequence, DONE_DISPLAY_SEQUENCE)
-        )
-      );
+      .where(eq(schema.lists.board_id, parseInt(list.board_id, 10)));
 
     list.display_sequence =
       listsBelongingToBoard.reduce((acc: number, curr: any) => {
@@ -366,6 +434,34 @@ app.get("/api/list/:id", async (req: Request, res: Response) => {
   }
 });
 
+app.put("/api/list/reorder", async (req: Request, res: Response) => {
+  try {
+    const batchArray = [];
+
+    const body = req.body;
+
+    for (const key in body) {
+      const value = body[key];
+      batchArray.push(
+        await db
+          .update(schema.lists)
+          .set({ display_sequence: value })
+          .where(eq(schema.lists.id, parseInt(key, 10)))
+          .returning()
+      );
+    }
+
+    if (batchArray.length > 0) {
+      res.status(200).send(batchArray);
+    } else {
+      res.status(400).send("No lists to update");
+    }
+  } catch (error) {
+    res.status(500).send(error);
+    console.log(error);
+  }
+});
+
 app.put("/api/list/:id", async (req: Request, res: Response) => {
   try {
     if (
@@ -384,6 +480,29 @@ app.put("/api/list/:id", async (req: Request, res: Response) => {
 
     if (result) {
       res.status(200).send(result);
+    }
+  } catch (error) {
+    res.status(500).send(error);
+    console.log(error);
+  }
+});
+
+app.delete("/api/list/:id", async (req: Request, res: Response) => {
+  try {
+    const resultDeleteList = await db
+      .delete(schema.lists)
+      .where(eq(schema.lists.id, parseInt(req.params.id, 10)))
+      .returning();
+
+    if (resultDeleteList) {
+      const resultDeleteTasks = await db
+        .delete(schema.tasks)
+        .where(eq(schema.tasks.list_id, parseInt(req.params.id, 10)))
+        .returning();
+
+      if (resultDeleteTasks) {
+        res.status(200).send(resultDeleteList);
+      }
     }
   } catch (error) {
     res.status(500).send(error);
