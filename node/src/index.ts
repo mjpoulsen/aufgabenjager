@@ -197,7 +197,7 @@ app.post("/api/task", async (req: Request, res: Response) => {
     const result = await db.insert(tasks).values(task).returning();
 
     if (result) {
-      res.status(200).send(result);
+      res.status(201).send(result);
     }
   } catch (error) {
     res.status(500).send(error);
@@ -232,7 +232,7 @@ app.post("/api/board", async (req: Request, res: Response) => {
     const boardResult: any = await db.insert(boards).values(board).returning();
 
     if (boardResult) {
-      res.status(200).send(boardResult);
+      res.status(201).send(boardResult);
     }
   } catch (error) {
     res.status(500).send(error);
@@ -320,40 +320,47 @@ app.delete("/api/board/:id", async (req: Request, res: Response) => {
 
 app.get("/api/board/:id/data", async (req: Request, res: Response) => {
   try {
-    const listsResultSet = await db
+    const listsResultSet: any[] = await db
       .select()
       .from(schema.lists)
       .where(eq(schema.lists.board_id, parseInt(req.params.id, 10)));
 
-    const lists = listsResultSet.reduce((acc: any, curr: any) => {
-      acc[curr.id] = {
-        title: curr.title,
-        display_sequence: curr.display_sequence,
+    if (listsResultSet.length === 0) {
+      res.status(404).send("No lists found for board id");
+    } else {
+      const lists = listsResultSet.reduce((acc: any, curr: any) => {
+        acc[curr.id] = {
+          title: curr.title,
+          display_sequence: curr.display_sequence,
+        };
+        return acc;
+      }, {} as Record<string, any>);
+
+      let response: any = {
+        lists,
       };
-      return acc;
-    }, {} as Record<string, any>);
 
-    const listsIds = Object.keys(lists).map((id) => parseInt(id, 10));
+      const listsIds = Object.keys(lists).map((id) => parseInt(id, 10));
 
-    const tasksResultSet = await db
-      .select()
-      .from(schema.tasks)
-      .where(inArray(schema.tasks.list_id, listsIds));
+      const tasksResultSet: any[] = await db
+        .select()
+        .from(schema.tasks)
+        .where(inArray(schema.tasks.list_id, listsIds));
 
-    const tasks = tasksResultSet.reduce((acc: any, curr: any) => {
-      if (!acc[curr.list_id]) {
-        acc[curr.list_id] = {};
+      if (tasksResultSet.length > 0) {
+        const tasks = tasksResultSet.reduce((acc: any, curr: any) => {
+          if (!acc[curr.list_id]) {
+            acc[curr.list_id] = {};
+          }
+          acc[curr.list_id][curr.id] = curr;
+          return acc;
+        }, {} as Record<string, any>);
+
+        response = {
+          ...response,
+          tasks,
+        };
       }
-      acc[curr.list_id][curr.id] = curr;
-      return acc;
-    }, {} as Record<string, any>);
-
-    const response = {
-      tasks,
-      lists,
-    };
-
-    if (response) {
       res.status(200).send(response);
     }
   } catch (error) {
@@ -410,7 +417,7 @@ app.post("/api/list/", async (req: Request, res: Response) => {
     const listResult: any = await db.insert(lists).values(list).returning();
 
     if (listResult) {
-      res.status(200).send(listResult);
+      res.status(201).send(listResult);
     }
   } catch (error) {
     res.status(500).send(error);
