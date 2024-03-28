@@ -3,6 +3,7 @@ import iKanbanCard from "../types/iKanbanCard";
 import KanbanList from "./KanbanList";
 import axios from "axios";
 import iKanbanList from "../types/iKanbanList";
+import { useParams } from "react-router-dom";
 
 type TaskResource = {
   id: number;
@@ -15,8 +16,9 @@ type TaskResource = {
 };
 
 const KanbanBoard = () => {
-  // todo move to a separate constant file
   const DONE_KEY = 2147483647;
+
+  const { boardId } = useParams();
 
   const emptyKanbanMap: Record<string, Record<string, iKanbanCard>> = {};
   const emptyKanbanListMap: Record<string, iKanbanList> = {};
@@ -29,63 +31,84 @@ const KanbanBoard = () => {
   const [listNameMapState, setListNameMapState] = useState(emptyListNameMap);
   const [draggedListId, setDraggedListId] = useState("");
   const [kanbanListMap, setKanbanListMap] = useState(emptyKanbanListMap);
+  const [boardTitle, setBoardTitle] = useState("");
 
   useEffect(() => {
-    // Add the event listener when the component mounts
-    document.addEventListener("keydown", handleKeyDown);
-
     axios
-      .get("http://localhost:8000/api/board/1/data")
+      .get(`http://localhost:8000/api/board/${boardId}`)
       .then((response) => {
         const data = response.data;
-
-        const lists: Record<string, iKanbanList> = data.lists;
-
-        // add a DONE list to set of list; storing this in the db doesn't add much value because every board has one and tasks do not have their list_id updated to the DONE list key
-        lists[DONE_KEY.toString()] = {
-          id: DONE_KEY.toString(),
-          title: "DONE",
-          display_sequence: DONE_KEY,
-          board_id: 1, // todo make this the current board when more than one is supported
-        };
-
-        const tasks: Record<string, Record<string, TaskResource>> = data.tasks;
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const tasksMap: Record<string, Record<string, any>> = {};
-
-        const names: Record<string, string> = {};
-
-        for (const listId in lists) {
-          names[listId] = lists[listId].title;
-          tasksMap[listId] = {};
-        }
-
-        for (const listId in tasks) {
-          tasksMap[listId] = tasks[listId];
-
-          for (const taskId in tasksMap[listId]) {
-            const task = tasksMap[listId][taskId];
-            if (task.completed) {
-              delete tasksMap[listId][taskId];
-              tasksMap[DONE_KEY][taskId] = task;
-            }
-          }
-        }
-
-        setKanbanListMap(lists);
-        setKanbanMapState(tasksMap);
-        setListNameMapState(names);
+        setBoardTitle(data[0].title);
       })
       .catch((err) => {
         console.error(err);
       });
 
+    let lists: Record<string, iKanbanList> = {
+      "2147483647": {
+        id: DONE_KEY.toString(),
+        title: "DONE",
+        display_sequence: DONE_KEY,
+        board_id: Number(boardId),
+      },
+    };
+    const names: Record<string, string> = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const tasksMap: Record<string, Record<string, any>> = {};
+
+    axios
+      .get(`http://localhost:8000/api/board/${boardId}/data`)
+      .then((response) => {
+        if (response.status === 200) {
+          const data = response.data;
+
+          lists = { ...lists, ...data.lists };
+
+          const tasks: Record<
+            string,
+            Record<string, TaskResource>
+          > = data.tasks;
+
+          for (const listId in lists) {
+            names[listId] = lists[listId].title;
+            tasksMap[listId] = {};
+          }
+
+          for (const listId in tasks) {
+            tasksMap[listId] = tasks[listId];
+
+            for (const taskId in tasksMap[listId]) {
+              const task = tasksMap[listId][taskId];
+              if (task.completed) {
+                delete tasksMap[listId][taskId];
+                tasksMap[DONE_KEY][taskId] = task;
+              }
+            }
+          }
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+
+        for (const listId in lists) {
+          names[listId] = lists[listId].title;
+          tasksMap[listId] = {};
+        }
+      })
+      .finally(() => {
+        setListNameMapState(names);
+        setKanbanListMap(lists);
+        setKanbanMapState(tasksMap);
+      });
+
+    // Add the event listener when the component mounts
+    document.addEventListener("keydown", handleKeyDown);
+
     // Remove the event listener when the component unmounts
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, []); // Empty dependency array means this effect runs once on mount and cleanup on unmount
+  }, [boardId]);
 
   const onCardCompleteMap = (
     id: string,
@@ -464,7 +487,7 @@ const KanbanBoard = () => {
     const newList: iKanbanList = {
       title: `New List`,
       display_sequence: length,
-      board_id: 1, // todo once more boards are added, this should be dynamic
+      board_id: Number(boardId),
       id: "",
     };
 
@@ -478,7 +501,7 @@ const KanbanBoard = () => {
 
         setListNameMapState({ ...listNameMapState });
         setKanbanMapState({ ...kanbanMapState });
-        setKanbanListMap({ ...kanbanListMap})
+        setKanbanListMap({ ...kanbanListMap });
       })
       .catch((err) => {
         console.error(err);
@@ -549,7 +572,7 @@ const KanbanBoard = () => {
   return (
     <div className="p-2">
       <div>
-        <h1>Kanban Board</h1>
+        <h1>{boardTitle}</h1>
         <div
           className="add-list-btn max-w-20"
           onClick={() => {

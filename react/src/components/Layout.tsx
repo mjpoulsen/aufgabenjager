@@ -74,18 +74,6 @@ const Layout = () => {
                   >
                     Home
                   </a>
-                  <a
-                    href="/getTasks"
-                    className="text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium"
-                  >
-                    All Tasks
-                  </a>
-                  <a
-                    href="/postTask"
-                    className="text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium"
-                  >
-                    Create Task
-                  </a>
                 </div>
               </div>
             </div>
