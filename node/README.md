@@ -2,7 +2,7 @@
 
 ## NPM Commands
 
-View `package.json` for run commands. The following are a breakdown of the common commands.
+View `package.json` for run commands. The following is a breakdown of the common commands.
 
 ### Build
 
@@ -39,9 +39,3 @@ Generates the `drizzle` directory and launches a daemon for the local studio.
 
 - Typescript
 - Drizzle Kit (Studio)
-
-## Todo
-
-- Add the following APIs
-  - GET List by ID and its Tasks
-- Verify schema.ts relations work when using Drizzle
