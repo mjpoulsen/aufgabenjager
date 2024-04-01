@@ -36,7 +36,7 @@ const BoardCard = ({
     if (editModeState) {
       return (
         <input
-          className="text-black font-bold text-xl px-2 bg-gray-100"
+          className="text-black font-bold text-xl px-2 bg-gray-100 text-center"
           type="text"
           value={titleState}
           onChange={handleTitleChange}
@@ -47,7 +47,11 @@ const BoardCard = ({
       );
     }
 
-    return <h3 className="text-black font-bold text-xl px-2">{titleState}</h3>;
+    return (
+      <h3 className="text-black font-bold text-xl px-2 text-center">
+        {titleState}
+      </h3>
+    );
   };
 
   const renderOpenButton = () => {
@@ -86,7 +90,7 @@ const BoardCard = ({
       onClick={() => onCardClick(boardId)}
     >
       <div>{renderTitle()}</div>
-      <div>
+      <div className="flex justify-center">
         {renderOpenButton()}
         {renderDeleteButton()}
       </div>

@@ -139,21 +139,23 @@ const BoardList = () => {
   };
 
   return (
-    <div className="flex-col content-center justify-center">
-      <div>
-        <h1>Boards</h1>
-        <div
-          className="add-list-btn max-w-40"
-          onClick={() => {
-            addNewBoard();
-          }}
-        >
-          <span className="plus-sign px-1">+</span>
-          <span>Add Board</span>
+    <div className="flex content-center justify-center p-5">
+      <div className="flex-col text-center">
+        <div className="p-5">
+          <h1>Boards List</h1>
+          <div
+            className="add-list-btn flex py-2 justify-center items-center"
+            onClick={() => {
+              addNewBoard();
+            }}
+          >
+            <span className="plus-sign px-1">+</span>
+            <span>Add Board</span>
+          </div>
         </div>
-      </div>
-      <div>
-        <div className="flex-col">{renderBoards()}</div>
+        <div>
+          <div className="flex-col py-2">{renderBoards()}</div>
+        </div>
       </div>
     </div>
   );
