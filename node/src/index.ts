@@ -6,11 +6,15 @@ import { eq, inArray } from "drizzle-orm";
 
 const { boards, lists, tasks } = schema;
 
+const user = process.env.DATABASE_USER;
+const host = process.env.DATABASE_HOST;
+const password = process.env.DATABASE_PASSWORD;
+
 const client = new Client({
-  user: "postgres",
-  host: "db",
+  user,
+  host,
   database: "postgres",
-  password: "1234",
+  password,
   port: 5432,
 });
 
