@@ -22,6 +22,10 @@ type KanbanListProps = {
   editDueDate: (cardId: string, dueDate: string) => void;
   editListTitle: (listId: string, title: string) => void;
   onDeleteList: (listId: string) => void;
+  dropCardEmptyList: (
+    e: React.DragEvent<HTMLDivElement>,
+    listId: string
+  ) => void;
 };
 
 const KanbanList = ({
@@ -43,6 +47,7 @@ const KanbanList = ({
   editDueDate,
   editListTitle,
   onDeleteList,
+  dropCardEmptyList,
 }: KanbanListProps) => {
   const [title, setTitle] = useState(listTitle);
   const [editMode, setEditMode] = useState(false);
@@ -82,7 +87,7 @@ const KanbanList = ({
     if (editMode) {
       return (
         <input
-          className="text-black font-bold text-xl px-2 bg-gray-100"
+          className="text-black text-center font-bold text-xl px-2 bg-gray-100"
           type="text"
           value={title}
           onChange={handleTitleChange}
@@ -95,7 +100,7 @@ const KanbanList = ({
     }
 
     return (
-      <div className="list-title flex grow w-full">
+      <div className="list-title text-center flex grow w-full">
         <h2
           className="text-3xl"
           onClick={(e) => {
@@ -201,7 +206,7 @@ const KanbanList = ({
   return (
     <div
       className="kanban-list flex-col grow m-2 bg-slate-500 rounded-lg shadow-lg p-2"
-      id={listIdState + Math.random()}
+      id={listIdState}
       onDrop={(e) => listOnDrop(e)}
       onDragEnter={(e) => listOnDragEnter(e)}
       onDragOver={(e) => e.preventDefault()}
@@ -212,7 +217,15 @@ const KanbanList = ({
         {renderTitle()}
         {renderDeleteListButton()}
       </div>
-      <div className="kanban-list-cards grow">{displayKanbanCards()}</div>
+      <div
+        className="kanban-list-cards grow min-h-40"
+        onDragOver={(e) => {
+          e.preventDefault();
+        }}
+        onDrop={(e) => dropCardEmptyList(e, listIdState)}
+      >
+        {displayKanbanCards()}
+      </div>
       {renderAddItemButton()}
     </div>
   );

@@ -208,7 +208,7 @@ const KanbanBoard = () => {
     axios
       .post("http://localhost:8000/api/task", newCard)
       .then((response) => {
-        const newCardId = response.data.id;
+        const newCardId = response.data[0].id;
         newCard.id = newCardId;
 
         kanbanMapState[kanbanMapStateKey][newCardId] = newCard;
@@ -386,6 +386,40 @@ const KanbanBoard = () => {
       });
   };
 
+  const dropCardEmptyList = (
+    e: React.DragEvent<HTMLDivElement>,
+    listId: string
+  ) => {
+    e.stopPropagation();
+    const draggedCardListId = findListIdFromCardId(draggedCardId);
+
+    if (!draggedCardListId) {
+      console.log("dragged list id not found");
+      return;
+    }
+
+    const draggedCard = kanbanMapState[draggedCardListId][draggedCardId];
+
+    draggedCard.display_sequence = 1;
+
+    axios
+      .put(`http://localhost:8000/api/task/${draggedCardId}`, {
+        list_id: listId,
+        display_sequence: 1,
+      })
+      .then((response) => {
+        if (response.data) {
+          delete kanbanMapState[draggedCardListId][draggedCardId];
+          kanbanMapState[listId][draggedCardListId] = draggedCard;
+
+          setKanbanMapState({ ...kanbanMapState });
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  };
+
   const dropCardReorder = (
     e: React.DragEvent<HTMLDivElement>,
     cardId: string
@@ -441,6 +475,9 @@ const KanbanBoard = () => {
                   delete kanbanMapState[draggedCardListId][draggedCardId];
                   kanbanMapState[cardListId][draggedCardId] = draggedCard;
                 }
+
+                setDraggedCardId("");
+                setKanbanMapState({ ...kanbanMapState });
               })
               .catch((err) => {
                 console.error(err);
@@ -558,6 +595,7 @@ const KanbanBoard = () => {
           editDueDate={editDueDate}
           editListTitle={editListTitle}
           onDeleteList={onDeleteList}
+          dropCardEmptyList={dropCardEmptyList}
         />
       );
     }
