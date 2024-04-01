@@ -18,7 +18,7 @@ services:
     tty: true
     ports:
       - "3000:3000"
-    command: npm run start
+    command: npm run dev
     depends_on:
       - db
 
@@ -35,7 +35,7 @@ services:
     tty: true
     ports:
       - "5173:5173"
-    command: npm run preview
+    command: npm run dev
 
   db:
     image: postgres
