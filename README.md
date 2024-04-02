@@ -23,6 +23,28 @@ This project was made using this [repo](https://github.com/AntonioMaccarini/dock
 - Store data locally (through docker mount volume)
 - Single port (orchestrated through nginx)
 
+### Previews
+
+#### New Board
+
+![new_board](assets/new_board.gif)
+
+#### Edit Board Title
+
+![edit_board_title](assets/edit_board.gif)
+
+#### Delete Board
+
+![delete_board](assets/delete_board.gif)
+
+#### New List, Edit Title, and Delete List
+
+![new_list_edit_title_and_delete_list](assets/new_list_and_delete_list.gif)
+
+#### Various Task Features
+
+![various_task_features](assets/various_features_for_tasks.gif)
+
 ## Todo
 
 - Add tests -- tests were not provided because I wanted the freedom to develop the api and frontend without having to update tests. Now that the project is more or less complete, tests should be added to prevent future changes from breaking existing functionality
