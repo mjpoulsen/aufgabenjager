@@ -134,3 +134,6 @@ dist
 
 # Drizzle
 */drizzle
+
+# OSX
+.DS_Store
