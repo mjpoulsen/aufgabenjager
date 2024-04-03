@@ -29,6 +29,7 @@ const createTables = async () => {
     description VARCHAR(255) NULL,
     due_date DATE NOT NULL,
     completed BOOLEAN NOT NULL DEFAULT false,
+    display_sequence INTEGER NOT NULL,
     list_id SERIAL NOT NULL
   );`);
   await client.query(`CREATE TABLE IF NOT EXISTS lists 
